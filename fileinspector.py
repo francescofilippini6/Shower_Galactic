@@ -50,10 +50,8 @@ def plotBDT(listofdf,namefile,option):
             print('cut')
         sumhisto.append(list(df['BDT__cuts_1e2']))
         sumweights.append(list(df['WeightAtmo']))
-        
-        
+
         #sumhisto=np.concatenate(sumhisto,np.array(df['BDT__cuts_1e2']),axis=None)
-        
         aaa=np.array(df['WeightAtmo'])
         if 'DATA' in filename[counter]:
             weigh=[10]*len(df['BDT__cuts_1e2'])
@@ -87,27 +85,34 @@ def plotBDT(listofdf,namefile,option):
     plt.show()
     return figu
 
-def coordinateconverter(df):
+def plot_events_after_cuts(df):
+    bdt_cut=0.33
+    selectedDF=df[df['BDT__cuts_1e2'] > 0.33]
+    print("selected",selectedDF)
+    return selectedDF
+    
+def coordinateconverter(dataframe):
     antares_lat=42.8  #42°48\' N
     antares_lon=-6.17  #6°10' E ->  minus??
     locationAntares =locationAntares= EarthLocation(lat=-antares_lat*u.deg , lon=(antares_lon+180)*u.deg, height= -12000*u.m)
-    evt_time=df['DateMJD']
-    azi=np.degrees(np.array(df['AAAzimuth']))
+    evt_time=list(dataframe['DateMJD'])
+    print(evt_time)
+    azi=np.degrees(np.array(dataframe['AAAzimuth']))
     #conversion of the altitude to zeith!!!!
-    alt=np.degrees(np.pi/2+np.array(df['AAZenith']))
+    alt=np.degrees(np.pi/2+np.array(dataframe['AAZenith']))
     gal_l=[]
     gal_b=[]
     print("alt (deg)",alt)
     print("azi (deg)",azi)
-
-    for a in range(10000):#range(len(alt)):
-        print("A",a)
-        obstime = Time(evt_time[a],format='mjd').to_value('isot')
+    for indexdf in range(len(alt)):
+        print("A",indexdf)
+        print(evt_time[indexdf])
+        obstime = Time(evt_time[indexdf],format='mjd').to_value('isot')
         print("TIME",obstime)
         frame_hor = AltAz(obstime=obstime, location=locationAntares)
         print("After frame constructor")
-        print(azi[a],alt[a])
-        local_sky=SkyCoord(azi[a],alt[a],frame=frame_hor, unit=u.deg)
+        print(azi[indexdf],alt[indexdf])
+        local_sky=SkyCoord(azi[indexdf],alt[indexdf],frame=frame_hor, unit=u.deg)
         print("after local sky")
         gal=local_sky.transform_to('galactic')
         gal_l.append(gal.l)
@@ -177,7 +182,7 @@ def plotterskymap(final):
     m = np.zeros(hp.nside2npix(NSIDE))
     fig=plt.figure()
     m2=fig.add_subplot(111)
-    hp.visufunc.mollview(cat2hpx(final.l.wrap_at('180d').deg, final.b.deg, nside=32, radec=False),hold=True,title=str(sys.argv[1]))
+    hp.visufunc.mollview(cat2hpx(final.l.wrap_at('180d').deg, final.b.deg, nside=32, radec=False),hold=True,title='selected_data')
     hp.graticule()
     plt.show()
     return fig
@@ -188,7 +193,17 @@ if __name__ == "__main__":
     filename=sys.argv[1].split(',')
     listofdf=[]
     for a in filename:
+        print('retrieving file: ',a)
         df=reader(a)
         listofdf.append(df)
+        #plotterskymap(coordinateconverter(plot_events_after_cuts(df)))
+        if 'DATA' in a:
+            print(len(df['DateMJD']))
+            selection=plot_events_after_cuts(df)
+            print(len(selection['DateMJD']))
+            plotterskymap(coordinateconverter(selection))
+            #plotterskymap(coordinateconverter(df))
     option=sys.argv[2]
     plotBDT(listofdf,filename,option)
+    
+ 
