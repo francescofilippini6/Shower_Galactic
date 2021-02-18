@@ -10,7 +10,7 @@ from astropy.coordinates import SkyCoord, EarthLocation, AltAz, concatenate
 from astropy.time import Time
 import healpy as hp
 from scipy.optimize import curve_fit
-
+import seaborn as seabornInstance
 
 def reader(filename):
     df = pd.read_hdf(filename)
@@ -91,6 +91,54 @@ def plot_events_after_cuts(df):
     print("selected",selectedDF)
     return selectedDF
     
+
+def plot_MC_RECO(df):
+    Reco_zenith=df['AAZenith']
+    Reco_azimuth=df['AAAzimuth']
+    MCZen=df['MCZenith']
+    MCAz=df['MCAzimuth']
+    Reco_Energy=df['TantraEnergy']
+    MC_Energy=df['MCE']
+    print(Reco_zenith)
+    print(MCZen)
+    fig=plt.figure()
+    ax1=fig.add_subplot(231)
+    ax1.hist(Reco_zenith,bins=50,label='Reco_Zenith '+str(len(Reco_zenith)),alpha=0.5)
+    ax1.hist(MCZen,bins=50,label='MC_Zenith '+str(len(MCZen)),alpha=0.5)
+    ax1.set_title('RECO-MC Zenith')
+    ax1.legend()
+    ax2=fig.add_subplot(232)
+    ax2.hist(Reco_azimuth,bins=50,label='Reco_Azimuth '+str(len(Reco_azimuth)),alpha=0.5)
+    ax2.hist(MCAz,bins=50,label='MC_Azimuth '+str(len(MCAz)),alpha=0.5)
+    ax2.set_title('RECO-MC Azimuth')
+    ax2.legend()
+    
+    ax3=fig.add_subplot(233)
+    ax3.hist(Reco_Energy,bins=50,label='Reco_Energy '+str(len(Reco_Energy)),alpha=0.5)
+    ax3.hist(MC_Energy,bins=50,label='MC_Energy '+str(len(MC_Energy)),alpha=0.5)
+    ax3.set_title('RECO-MC Energy')
+    ax3.legend()
+
+    ax3=fig.add_subplot(234)
+    ax3.scatter(Reco_Energy,MC_Energy)
+    
+    ax3=fig.add_subplot(235)
+    ax3.scatter(MCAz,Reco_azimuth)
+
+    ax3=fig.add_subplot(236)
+    ax3.scatter(MCZen,Reco_zenith)
+    
+    plt.ylabel('entries')
+    plt.show()
+    return fig
+    #from scipy.stats import chisquare
+    #c=chisquare(a[0], f_exp=b[0])
+    #print("CHISQUARE:",c[0])
+    
+def data_extractor(df,filename):
+    name=filename.split('.')
+    df.to_csv(name[0]+'.csv',index=False)
+    return df
 def coordinateconverter(dataframe):
     antares_lat=42.8  #42°48\' N
     antares_lon=-6.17  #6°10' E ->  minus??
@@ -192,18 +240,23 @@ def plotterskymap(final):
 if __name__ == "__main__":
     filename=sys.argv[1].split(',')
     listofdf=[]
+    option=sys.argv[2]
+
     for a in filename:
         print('retrieving file: ',a)
         df=reader(a)
         listofdf.append(df)
-        #plotterskymap(coordinateconverter(plot_events_after_cuts(df)))
         if 'DATA' in a:
-            print(len(df['DateMJD']))
-            selection=plot_events_after_cuts(df)
-            print(len(selection['DateMJD']))
-            plotterskymap(coordinateconverter(selection))
-            #plotterskymap(coordinateconverter(df))
-    option=sys.argv[2]
-    plotBDT(listofdf,filename,option)
+            data_extractor(df,a)
+            if option=='cut':
+                selection=plot_events_after_cuts(df)
+                #plotterskymap(coordinateconverter(selection))
+            else:
+                print('wait')
+                #plotterskymap(coordinateconverter(df))
+        #if 'anumuCC' in a:
+            #plot_MC_RECO(df)
+    print("--------BDT----------")
+    #plotBDT(listofdf,filename,option)
     
  
