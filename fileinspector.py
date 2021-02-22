@@ -36,7 +36,7 @@ Index(['TantraLines', 'TantraHits', 'Trigger3N', 'TriggerT3', 'Nrun',
 def gaussian(x,B,a,b):
     return B*np.exp(-((x-a)**2/(2*b**2)))
     
-def plotBDT(listofdf,namefile,option):
+def plotBDT(listofdf,filename,option):
     figu, ax = plt.subplots()
     sumhisto=[]
     sumcosmic=[]
@@ -131,14 +131,98 @@ def plot_MC_RECO(df):
     plt.ylabel('entries')
     plt.show()
     return fig
-    #from scipy.stats import chisquare
-    #c=chisquare(a[0], f_exp=b[0])
-    #print("CHISQUARE:",c[0])
     
 def data_extractor(df,filename):
     name=filename.split('.')
     df.to_csv(name[0]+'.csv',index=False)
     return df
+
+def weight_astro_spectrum(df):
+    my_spectral_index = 2.5
+    my_spectral_norm = 3.5 * 10**(-12+my_spectral_index*3) #Neutrino Energy in TeV
+    new_w3_weight=[]
+    #for index in range(len(df['MCE'])):
+        #new_w3_weight.append(my_spectral_norm*np.array(df.iloc[index]['w2'])*np.power(np.array(df.iloc[index]['MCE'])*10**-3,-my_spectral_index))
+    #imporvements of cpu time of a factor 1000 minimum !!!!
+    new_w3_weight=my_spectral_norm*np.array(df['w2'])*np.power(np.array(df['MCE']),-my_spectral_index)
+    df['new_w3'] = new_w3_weight
+    print("done")
+    return df
+
+def plot_reco_energy_distro(listofdf,filename):
+    fig, ax = plt.subplots()
+    cosmic_weight_old=[]
+    cosmic_weight_new=[]
+    cosmic_all=[]
+    atmo_nu_e=[]
+    atmo_nu_e_w=[]
+    atmo_nu_mu=[]
+    atmo_nu_mu_w=[]
+    
+    for counter, df in enumerate(listofdf):
+        if 'DATA' in filename[counter]:
+            continue
+        elif 'nue' in filename[counter]:
+            atmo_nu_e.append(list(df['TantraEnergy']))
+            atmo_nu_e_w.append(list(df['WeightAtmo']))
+        elif 'numu' in filename[counter]:
+            atmo_nu_mu.append(list(df['TantraEnergy']))
+            atmo_nu_mu_w.append(list(df['WeightAtmo']))
+        
+        #atmoWeight = list(df['WeightAtmo'])
+        
+        #plotting the energy distribution of atmo events
+        #ax.hist(df['TantraEnergy'],bins=50,histtype=u'step',weights=atmoWeight,label='E'+str(filename[counter].split('.')[0]))
+
+        #collecting the energy values
+        cosmic_all.append(list(df['TantraEnergy']))
+        #collecting all the weights to produce the cosmic spectrum
+        if 'new_w3' in df.keys():
+            cosmic_weight_new.append(list(df['new_w3']))
+        cosmic_weight_old.append(list(df['WeightAstro']))
+        ax.set_yscale('log')
+        ax.set_xscale('log')
+    sumcomsic_ene=list(itertools.chain.from_iterable(cosmic_all))
+    sumnue_ene=list(itertools.chain.from_iterable(atmo_nu_e))
+    sumnumu_ene=list(itertools.chain.from_iterable(atmo_nu_mu))
+
+    #sum atmo plot
+    sumnueatmo_w=list(itertools.chain.from_iterable(atmo_nu_e_w))
+    ax.hist(sumnue_ene,bins=50,histtype=u'step',weights=sumnueatmo_w,label='nu e atmo')
+    sumnumuatmo_w=list(itertools.chain.from_iterable(atmo_nu_mu_w))
+    ax.hist(sumnumu_ene,bins=50,histtype=u'step',weights=sumnumuatmo_w,label='nu mu atmo')
+        
+    #comsic flux plotting
+    if 'new_w3' in df.keys():
+        sumcosmicw3_new=list(itertools.chain.from_iterable(cosmic_weight_new))
+        ax.hist(sumcomsic_ene,bins=50,histtype=u'step',weights=sumcosmicw3_new,label='E-2.5 spectrum')
+
+    sumcosmicw3_old=list(itertools.chain.from_iterable(cosmic_weight_old))
+    ax.hist(sumcomsic_ene,bins=50,histtype=u'step',weights=sumcosmicw3_old,label='E-2.0 spectrum')
+    plt.xlabel('E reco')
+    plt.suptitle('Energy distributions')
+    plt.legend()
+    plt.show()
+    return fig
+    
+
+def histo_dataframe(df,filename):
+    columns=df.keys()
+    name=filename.split('.')
+    fig=plt.figure(figsize=(20,10))
+    fig.suptitle(name[0])
+    for index,key in enumerate(columns):
+        if any(sas == -99999 for sas in list(df[key])) or df[key].isnull:
+            print('out')
+            continue
+        else:
+            print('in')
+            axx=fig.add_subplot(5,10,index+1)
+            axx.hist(list(df[key]),bins=50,histtype=u'step')
+    plt.show()
+    return  fig
+    
+
 def coordinateconverter(dataframe):
     antares_lat=42.8  #42°48\' N
     antares_lon=-6.17  #6°10' E ->  minus??
@@ -180,7 +264,7 @@ def cat2hpx(lon, lat, nside, radec=True):
         Coordinates of the sources in degree. If radec=True, assume input is in the icrs
         coordinate system. Otherwise assume input is glon, glat
 
-    nside : int
+    nside : int 
         HEALPix nside of the target map
 
     radec : bool
@@ -217,9 +301,6 @@ def cat2hpx(lon, lat, nside, radec=True):
     return hpx_map
 
 def plotterskymap(final):
-    #---------------------------------------------
-    #plotting part
-    #---------------------------------------------
     #--------------------------------------------------------------
     # Setting of healpy resolution map and n. of pixels
     #--------------------------------------------------------------
@@ -241,22 +322,31 @@ if __name__ == "__main__":
     filename=sys.argv[1].split(',')
     listofdf=[]
     option=sys.argv[2]
-
+    cut=[]
     for a in filename:
         print('retrieving file: ',a)
         df=reader(a)
         listofdf.append(df)
-        if 'DATA' in a:
-            data_extractor(df,a)
-            if option=='cut':
-                selection=plot_events_after_cuts(df)
+        if option=='cut':
+            selection=plot_events_after_cuts(df)
+            cut.append(weight_astro_spectrum(selection))
+
+        #print('TANTRA',df['TantraEnergy'])
+        print('MCE',df['MCE'])
+        #if 'DATA' in a:
+            #data_extractor(df,a)
+            #histo_dataframe(df,a)
                 #plotterskymap(coordinateconverter(selection))
-            else:
-                print('wait')
+         #   else:
+         #       print('wait')
                 #plotterskymap(coordinateconverter(df))
         #if 'anumuCC' in a:
             #plot_MC_RECO(df)
-    print("--------BDT----------")
+    print("--------GLOBAL----------")
+    if option=='cut':
+        plot_reco_energy_distro(cut,filename)
+    else:
+        plot_reco_energy_distro(listofdf,filename)
     #plotBDT(listofdf,filename,option)
     
  
