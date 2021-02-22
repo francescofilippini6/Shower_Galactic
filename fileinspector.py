@@ -88,7 +88,7 @@ def plotBDT(listofdf,filename,option):
 def plot_events_after_cuts(df):
     bdt_cut=0.33
     selectedDF=df[df['BDT__cuts_1e2'] > 0.33]
-    print("selected",selectedDF)
+    #print("selected",selectedDF)
     return selectedDF
     
 
@@ -139,19 +139,21 @@ def data_extractor(df,filename):
 
 def weight_astro_spectrum(df):
     my_spectral_index = 2.5
-    my_spectral_norm = 3.5 * 10**(-12+my_spectral_index*3) #Neutrino Energy in TeV
+    my_spectral_norm = 3.5 * 10**-12 * 10**(3*my_spectral_index)  #Neutrino Energy in TeV
     new_w3_weight=[]
     #for index in range(len(df['MCE'])):
         #new_w3_weight.append(my_spectral_norm*np.array(df.iloc[index]['w2'])*np.power(np.array(df.iloc[index]['MCE'])*10**-3,-my_spectral_index))
     #imporvements of cpu time of a factor 1000 minimum !!!!
-    new_w3_weight=my_spectral_norm*np.array(df['w2'])*np.power(np.array(df['MCE']),-my_spectral_index)
-    df['new_w3'] = new_w3_weight
+    new_w3_weight=my_spectral_norm*np.array(df['w2'])*np.power(np.array(np.power(10,df['MCE'])),-my_spectral_index)
+    df['new_w3'] = np.array(new_w3_weight)#*len(new_w3_weight)
     print("done")
     return df
 
 def plot_reco_energy_distro(listofdf,filename):
+    livetime=3012/365
     fig, ax = plt.subplots()
-    cosmic_weight_old=[]
+    cosmic_weight_old_w3=[]
+    cosmic_weight_old_fede=[]
     cosmic_weight_new=[]
     cosmic_all=[]
     atmo_nu_e=[]
@@ -165,10 +167,11 @@ def plot_reco_energy_distro(listofdf,filename):
         elif 'nue' in filename[counter]:
             atmo_nu_e.append(list(df['TantraEnergy']))
             atmo_nu_e_w.append(list(df['WeightAtmo']))
+            #atmo_nu_e_w.append(np.array(df['w3'])*livetime)
         elif 'numu' in filename[counter]:
             atmo_nu_mu.append(list(df['TantraEnergy']))
             atmo_nu_mu_w.append(list(df['WeightAtmo']))
-        
+            #atmo_nu_mu_w.append(np.array(df['w3'])*livetime)
         #atmoWeight = list(df['WeightAtmo'])
         
         #plotting the energy distribution of atmo events
@@ -179,9 +182,12 @@ def plot_reco_energy_distro(listofdf,filename):
         #collecting all the weights to produce the cosmic spectrum
         if 'new_w3' in df.keys():
             cosmic_weight_new.append(list(df['new_w3']))
-        cosmic_weight_old.append(list(df['WeightAstro']))
+            
+
+        cosmic_weight_old_fede.append(list(df['WeightAstro']))
+        cosmic_weight_old_w3.append(np.array(df['w3']))#*len(np.array(df['w3'])))
         ax.set_yscale('log')
-        ax.set_xscale('log')
+        #ax.set_xscale('log')
     sumcomsic_ene=list(itertools.chain.from_iterable(cosmic_all))
     sumnue_ene=list(itertools.chain.from_iterable(atmo_nu_e))
     sumnumu_ene=list(itertools.chain.from_iterable(atmo_nu_mu))
@@ -195,12 +201,33 @@ def plot_reco_energy_distro(listofdf,filename):
     #comsic flux plotting
     if 'new_w3' in df.keys():
         sumcosmicw3_new=list(itertools.chain.from_iterable(cosmic_weight_new))
-        ax.hist(sumcomsic_ene,bins=50,histtype=u'step',weights=sumcosmicw3_new,label='E-2.5 spectrum')
+        #histo=np.histogram(sumcomsic_ene, bins=np.logspace(1,8,50))
+        #print(histo)
+        #weigh=[]
+        #for aa in range(len(sumcomsic_ene)):
+        #    for b in range(len(histo[0])-1):
+        #        if sumcomsic_ene[aa]>histo[1][b] and sumcomsic_ene[aa]<histo[1][b+1]:
+        #            weigh.append(np.array(sumcosmicw3_new)*livetime/histo[0][b])
+        #        else:
+        #            continue
+        #ax.hist(h, bins='auto',histtype=u'step',weights=weigh,label='E-2.5 spectrum')
+        ax.hist(sumcomsic_ene,bins=50,histtype=u'step',weights=np.array(sumcosmicw3_new)*(livetime),label='E-2.5 spectrum')
 
-    sumcosmicw3_old=list(itertools.chain.from_iterable(cosmic_weight_old))
-    ax.hist(sumcomsic_ene,bins=50,histtype=u'step',weights=sumcosmicw3_old,label='E-2.0 spectrum')
-    plt.xlabel('E reco')
+    sumcosmicw3_old_fede=list(itertools.chain.from_iterable(cosmic_weight_old_fede))
+    sumcosmicw3_old_w3=list(itertools.chain.from_iterable(cosmic_weight_old_w3))
+    ax.hist(sumcomsic_ene,bins=50,histtype=u'step',weights=np.array(sumcosmicw3_old_fede),label='E-2.0 spectrum fede')
+    
+    #ax.hist(sumcomsic_ene,bins=50,histtype=u'step',weights=weigh,label='E-2.0 spectrum W3')
+
+    print("NU e sum",np.sum(sumnueatmo_w))
+    print("NU mu sum",np.sum(sumnumuatmo_w))
+    print("w3",np.sum(sumcosmicw3_old_w3))
+    print("fede sum",np.sum(sumcosmicw3_old_fede))
+    #
+    
+    plt.xlabel('log_10(E reco/GeV)')
     plt.suptitle('Energy distributions')
+    #plt.ylim((10**-2,10**4))
     plt.legend()
     plt.show()
     return fig
@@ -326,13 +353,13 @@ if __name__ == "__main__":
     for a in filename:
         print('retrieving file: ',a)
         df=reader(a)
-        listofdf.append(df)
         if option=='cut':
             selection=plot_events_after_cuts(df)
             cut.append(weight_astro_spectrum(selection))
-
+        else:
+            listofdf.append(weight_astro_spectrum(df))
         #print('TANTRA',df['TantraEnergy'])
-        print('MCE',df['MCE'])
+        #print('MCE',df['MCE'])
         #if 'DATA' in a:
             #data_extractor(df,a)
             #histo_dataframe(df,a)
