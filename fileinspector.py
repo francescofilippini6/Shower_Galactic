@@ -139,13 +139,11 @@ def data_extractor(df,filename):
 
 def weight_astro_spectrum(df):
     my_spectral_index = 2.5
-    my_spectral_norm = 3.5 * 10**-12 * 10**(3*my_spectral_index)  #Neutrino Energy in TeV
+    my_spectral_norm = 3.5 * 10**-12 * 10**(3*my_spectral_index)  #Neutrino Energy in GeV
     new_w3_weight=[]
-    #for index in range(len(df['MCE'])):
-        #new_w3_weight.append(my_spectral_norm*np.array(df.iloc[index]['w2'])*np.power(np.array(df.iloc[index]['MCE'])*10**-3,-my_spectral_index))
     #imporvements of cpu time of a factor 1000 minimum !!!!
     new_w3_weight=my_spectral_norm*np.array(df['w2'])*np.power(np.array(np.power(10,df['MCE'])),-my_spectral_index)
-    df['new_w3'] = np.array(new_w3_weight)#*len(new_w3_weight)
+    df['new_w3'] = np.array(new_w3_weight)
     print("done")
     return df
 
@@ -167,51 +165,55 @@ def plot_reco_energy_distro(listofdf,filename):
         elif 'nue' in filename[counter]:
             atmo_nu_e.append(list(df['TantraEnergy']))
             atmo_nu_e_w.append(list(df['WeightAtmo']))
-            #atmo_nu_e_w.append(np.array(df['w3'])*livetime)
+            
         elif 'numu' in filename[counter]:
             atmo_nu_mu.append(list(df['TantraEnergy']))
             atmo_nu_mu_w.append(list(df['WeightAtmo']))
-            #atmo_nu_mu_w.append(np.array(df['w3'])*livetime)
+            
         #atmoWeight = list(df['WeightAtmo'])
-        
         #plotting the energy distribution of atmo events
         #ax.hist(df['TantraEnergy'],bins=50,histtype=u'step',weights=atmoWeight,label='E'+str(filename[counter].split('.')[0]))
 
         #collecting the energy values
         cosmic_all.append(list(df['TantraEnergy']))
+
         #collecting all the weights to produce the cosmic spectrum
         if 'new_w3' in df.keys():
             cosmic_weight_new.append(list(df['new_w3']))
             
 
         cosmic_weight_old_fede.append(list(df['WeightAstro']))
-        cosmic_weight_old_w3.append(np.array(df['w3']))#*len(np.array(df['w3'])))
+        cosmic_weight_old_w3.append(np.array(df['w3']))
         ax.set_yscale('log')
-        #ax.set_xscale('log')
-    sumcomsic_ene=list(itertools.chain.from_iterable(cosmic_all))
+        
+    
+    
+    #sum atmo plot
     sumnue_ene=list(itertools.chain.from_iterable(atmo_nu_e))
     sumnumu_ene=list(itertools.chain.from_iterable(atmo_nu_mu))
-
-    #sum atmo plot
     sumnueatmo_w=list(itertools.chain.from_iterable(atmo_nu_e_w))
     ax.hist(sumnue_ene,bins=50,histtype=u'step',weights=sumnueatmo_w,label='nu e atmo')
     sumnumuatmo_w=list(itertools.chain.from_iterable(atmo_nu_mu_w))
     ax.hist(sumnumu_ene,bins=50,histtype=u'step',weights=sumnumuatmo_w,label='nu mu atmo')
         
     #comsic flux plotting
+    sumcomsic_ene=list(itertools.chain.from_iterable(cosmic_all))
     if 'new_w3' in df.keys():
         sumcosmicw3_new=list(itertools.chain.from_iterable(cosmic_weight_new))
-        #histo=np.histogram(sumcomsic_ene, bins=np.logspace(1,8,50))
-        #print(histo)
-        #weigh=[]
-        #for aa in range(len(sumcomsic_ene)):
-        #    for b in range(len(histo[0])-1):
-        #        if sumcomsic_ene[aa]>histo[1][b] and sumcomsic_ene[aa]<histo[1][b+1]:
-        #            weigh.append(np.array(sumcosmicw3_new)*livetime/histo[0][b])
-        #        else:
-        #            continue
-        #ax.hist(h, bins='auto',histtype=u'step',weights=weigh,label='E-2.5 spectrum')
-        ax.hist(sumcomsic_ene,bins=50,histtype=u'step',weights=np.array(sumcosmicw3_new)*(livetime),label='E-2.5 spectrum')
+        histo=np.histogram(sumcomsic_ene,bins=np.linspace(0,12,51,endpoint=True)) 
+        #keep attention to digitize !!! if some values out of range, it will add bins indeces !!
+        placings = np.digitize(sumcomsic_ene, histo[1])
+        placings = np.array(placings)-1
+        print("PLACINGS",placings)
+        occu=[]
+        for a in placings:
+            occu.append(histo[0][a])
+        print("Out")
+        weigh=np.array(sumcosmicw3_new)#/np.array(occu)
+        print("Ciccio")
+
+        ax.hist(sumcomsic_ene,bins=50,histtype=u'step',weights=np.array(weigh)*livetime,label='E-2.5 spectrum')
+        #ax.hist(sumcomsic_ene,bins=50,histtype=u'step',weights=np.array(sumcosmicw3_new)*(livetime),label='E-2.5 spectrum')
 
     sumcosmicw3_old_fede=list(itertools.chain.from_iterable(cosmic_weight_old_fede))
     sumcosmicw3_old_w3=list(itertools.chain.from_iterable(cosmic_weight_old_w3))
