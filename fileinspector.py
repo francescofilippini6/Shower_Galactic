@@ -135,11 +135,11 @@ def data_extractor(df,filename):
     return df
 
 def weight_astro_spectrum(df):
-    my_spectral_index = 2.5
+    my_spectral_index = 2.5-1
     my_spectral_norm = 3.5 * 10**-12 * 10**(3*my_spectral_index)  #Neutrino Energy in GeV
     new_w3_weight=[]
     #imporvements of cpu time of a factor 1000 minimum !!!!
-    new_w3_weight=np.array(df['w2'])*my_spectral_norm*np.power(np.array(np.power(10,df['MCE'])),-my_spectral_index)
+    new_w3_weight=np.array(df['w2'])*my_spectral_norm*np.power(np.array(np.power(10,df['MCE'])),-my_spectral_index)/(2*np.pi)
     df['new_w3'] = np.array(new_w3_weight)
     print("done")
     return df
@@ -185,18 +185,18 @@ def plot_reco_energy_distro(listofdf,filename):
 
         cosmic_weight_old_fede.append(list(df['WeightAstro']))
         cosmic_weight_old_w3.append(np.array(df['w3']))
-        ax.set_yscale('log')
+        
         
     #sum atmo plot
     sumnue_ene=list(itertools.chain.from_iterable(atmo_nu_e))
     sumnumu_ene=list(itertools.chain.from_iterable(atmo_nu_mu))
     sumnueatmo_w=list(itertools.chain.from_iterable(atmo_nu_e_w))
-    ax.hist(sumnue_ene,bins=50,histtype=u'step',weights=np.array(sumnueatmo_w),label='nu e atmo')
+    ax.hist(sumnue_ene,bins=50,histtype=u'step',weights=np.array(sumnueatmo_w)/len(sumnue_ene),label='nu e atmo')
     #/len(sumnue_ene)
     sumnumuatmo_w=list(itertools.chain.from_iterable(atmo_nu_mu_w))
-    ax.hist(sumnumu_ene,bins=50,histtype=u'step',weights=np.array(sumnumuatmo_w),label='nu mu atmo')
+    ax.hist(sumnumu_ene,bins=50,histtype=u'step',weights=np.array(sumnumuatmo_w)/len(sumnumu_ene),label='nu mu atmo')
     #/len(sumnumu_ene)
-        
+    ax.set_yscale('log')
     #comsic flux plotting
     sumcomsic_ene=list(itertools.chain.from_iterable(cosmic_all))
     if 'new_w3' in df.keys():
@@ -217,31 +217,22 @@ def plot_reco_energy_distro(listofdf,filename):
         #    occu.append(integral[a])#/histo[0][a])
         #print("Out")
         #weigh=sumcosmicw3_new*np.array(occu)
-        weigh=np.array(sumcosmicw3_new)#/np.array(occu)
+        weigh=np.array(sumcosmicw3_new)/np.log(np.power(10,np.max(sumcomsic_ene))/np.power(10,np.min(sumcomsic_ene)))
         print("Ciccio")
-        
-        histt,binss,_=ax.hist(sumcomsic_ene,bins=50,histtype=u'step',weights=np.array(weigh)*livetime*len(sumnue_ene)/len(sumcomsic_ene),label='E-2.5 spectrum')
-
-        #baricentri=np.array([0.5*(np.power(10,binning[i])+np.power(10,binning[i+1])) for i in range(len(binning)-1)])
-        #startRange=0.08
-        #baricentri = [i for i in baricentri if i >= startRange]
-        #popt,_=curve_fit(expo,baricentri,benfe)
-        #print(popt)
-        #x = np.linspace(min(binning),max(binning), 1000)
-        #ax.plot(x,expo(x,*popt))
- 
+        histt,binss,_=ax.hist(sumcomsic_ene,bins=50,histtype=u'step',weights=np.array(weigh)*livetime/len(sumcomsic_ene),label='E-2.5 spectrum')
+        #*len(sumnumu_ene)
 
         ax2.scatter(binss[1:],np.array(histt)*np.power(np.power(10,binss[1:]),2.5))
         #ax2.set_yscale('log')
         ax2.set_title('Distro my spectrum *E ^ 2.5')
         #ax2.set_xscale('log')
-        #ax2.set_ylim([10**-10,10**2])
+        #ax2.set_ylim((10**-10,10**2))
         #*len(sumnue_ene)/len(sumcomsic_ene)
         
-
+        
     sumcosmicw3_old_fede=list(itertools.chain.from_iterable(cosmic_weight_old_fede))
     sumcosmicw3_old_w3=list(itertools.chain.from_iterable(cosmic_weight_old_w3))
-    histt,binss,_=ax.hist(sumcomsic_ene,bins=50,histtype=u'step',weights=np.array(sumcosmicw3_old_fede),label='E-2.0 spectrum fede')
+    histt,binss,_=ax.hist(sumcomsic_ene,bins=50,histtype=u'step',weights=np.array(sumcosmicw3_old_fede)/len(sumcomsic_ene),label='E-2.0 spectrum fede')
     #/len(sumcomsic_ene)
     ax3.scatter(binss[1:],np.array(histt)*np.power(np.power(10,binss[1:]),2.0))
     #ax2.set_yscale('log')
