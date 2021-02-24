@@ -137,14 +137,17 @@ def data_extractor(df,filename):
     return df
 
 def weight_astro_spectrum(df):
+    spectral_index = 2.0
+    spectral_norm = 6 * 10**-12 * 10**(3*spectral_index)  #Neutrino Energy in GeV
+    #new_w3_weight=np.array(df['w2'])*spectral_norm*np.power(np.array(np.power(10,df['MCE'])),-spectral_index)
     my_spectral_index = 2.5
     my_spectral_norm = 3.5 * 10**-12 * 10**(3*my_spectral_index)  #Neutrino Energy in GeV
-
     #imporvements of cpu time of a factor 1000 minimum !!!!
     new_w3_weight=np.array(df['w2'])*my_spectral_norm*np.power(np.array(np.power(10,df['MCE'])),-my_spectral_index)
     df['new_w3'] = np.array(new_w3_weight)
     print("done")
     return df
+
 
 
 def plot_reco_energy_distro(listofdf,filename):
@@ -198,7 +201,7 @@ def plot_reco_energy_distro(listofdf,filename):
     sumnueatmo_w=list(itertools.chain.from_iterable(atmo_nu_e_w))
     
     
-    #/len(sumnue_ene)
+    
     sumnumuatmo_w=list(itertools.chain.from_iterable(atmo_nu_mu_w))
     #/len(sumnumu_ene)
     ax.set_yscale('log')
@@ -207,8 +210,9 @@ def plot_reco_energy_distro(listofdf,filename):
     if 'new_w3' in df.keys():
         sumcosmicw3_new=list(itertools.chain.from_iterable(cosmic_weight_new))
         weigh=np.array(sumcosmicw3_new)
-        print("Ciccio")
-        histtn,binssn,_=ax.hist(sumcomsic_ene,bins=50,histtype=u'step',weights=np.array(weigh)*livetime/len(sumcomsic_ene),label='E-2.5 spectrum')
+        print("weigh len",len(weigh))
+        #print("Ciccio")
+        histtn,binssn,_=ax.hist(sumcomsic_ene,bins=50,histtype=u'step',weights=np.array(weigh)*livetime,label='E-2.5 spectrum')
 
         #error derived by the norm flux uncertanty!
         dy=np.array(1.4 *10**-12)*np.power(np.power(10,np.array(binssn[1:])+np.array(binssn[:-1]))*10**-3,-2.5)
@@ -220,13 +224,18 @@ def plot_reco_energy_distro(listofdf,filename):
         ax2.set_ylim((-1000,10**4))
         
     sumcosmicw3_old_fede=list(itertools.chain.from_iterable(cosmic_weight_old_fede))
-    sumcosmicw3_old_w3=list(itertools.chain.from_iterable(cosmic_weight_old_w3))
+    #sumcosmicw3_old_w3=list(itertools.chain.from_iterable(cosmic_weight_old_w3))
     
-    ax.hist(sumnumu_ene,bins=50,histtype=u'step',weights=np.array(sumnumuatmo_w)/len(sumnumu_ene),label='nu mu atmo')
-    ax.hist(sumnue_ene,bins=50,histtype=u'step',weights=np.array(sumnueatmo_w)/len(sumnue_ene),label='nu e atmo')
-    histt,binss,_=ax.hist(sumcomsic_ene,bins=50,histtype=u'step',weights=np.array(sumcosmicw3_old_fede)/len(sumcomsic_ene),label='E-2.0 spectrum fede')
+    ax.hist(sumnumu_ene,bins=50,histtype=u'step',weights=np.array(sumnumuatmo_w),label='nu mu atmo')
+    #/len(sumnumu_ene)
+    ax.hist(sumnue_ene,bins=50,histtype=u'step',weights=np.array(sumnueatmo_w),label='nu e atmo')
+    #/len(sumnue_ene)
+    histt,binss,_=ax.hist(sumcomsic_ene,bins=50,histtype=u'step',weights=np.array(sumcosmicw3_old_fede),label='E-2.0 spectrum fede')
+    #/len(sumcomsic_ene)
     ax.set_xlabel('log10(E/GeV)')
     ax.set_ylabel(r'$\frac{dN}{dE}$')
+    ax.set_ylim((10**-2,10**4))
+    ax.set_xlim((0.5,5.5))
     ax.legend()
     
     ax3.plot((np.array(binss[1:])+np.array(binss[:-1]))/2,np.array(histt)*np.power(np.power(10,(np.array(binss[1:])+np.array(binss[:-1]))/2),2.0),'b+')
@@ -234,9 +243,14 @@ def plot_reco_energy_distro(listofdf,filename):
     ax3.set_title('Distro spectrum *E ^ 2.0')
     ax3.set_ylabel(r'$E^{2}*\frac{dN}{dE}$',rotation=90)
     ax3.set_ylim((-1000,10**4))
-    
     plt.suptitle('Energy distributions')
     plt.show()
+    
+    print("FEDE COMSMIC EVENTS",np.sum(np.array(sumcosmicw3_old_fede)))
+    print("MINE cosmic events",np.sum(np.array(weigh)*livetime))
+    print("nu mu atmo",np.sum(np.array(sumnumuatmo_w)))
+    print("nu e atmo",np.sum(np.array(sumnueatmo_w)))
+    
     return fig
     
 
@@ -257,33 +271,70 @@ def histo_dataframe(df,filename):
     return  fig
     
 
-def coordinateconverter(dataframe):
+def coordinateconverter(listofdataframe):
     antares_lat=42.8  #42°48\' N
     antares_lon=-6.17  #6°10' E ->  minus??
-    locationAntares =locationAntares= EarthLocation(lat=-antares_lat*u.deg , lon=(antares_lon+180)*u.deg, height= -12000*u.m)
-    evt_time=list(dataframe['DateMJD'])
-    print(evt_time)
-    azi=np.degrees(np.array(dataframe['AAAzimuth']))
-    #conversion of the altitude to zeith!!!!
-    alt=np.degrees(np.pi/2+np.array(dataframe['AAZenith']))
+    locationAntares = locationAntares= EarthLocation(lat=-antares_lat*u.deg , lon=(antares_lon+180)*u.deg, height= -12000*u.m)
+    for dataframe in listofdataframe:
+        evt_time=np.array(dataframe['DateMJD'])
+        print(evt_time)
+        #azi=np.degrees(np.array(dataframe['AAAzimuth']))
+        #conversion of the altitude to zeith!!!!
+        #alt=np.degrees(np.pi/2+np.array(dataframe['AAZenith']))
+        azi=np.degrees(np.array(dataframe['TantraZenith']))
+        alt=np.degrees(np.pi/2+np.array(dataframe['TantraAzimuth']))
+        gal_l=[]
+        gal_b=[]
+        print("alt (deg)",alt)
+        print("azi (deg)",azi)
+        for indexdf in range(len(alt)):
+            print("A",indexdf)
+            print(evt_time[indexdf])
+            obstime = Time(evt_time[indexdf],format='mjd').to_value('isot')
+            print("TIME",obstime)
+            frame_hor = AltAz(obstime=obstime, location=locationAntares)
+            print("After frame constructor")
+            print(azi[indexdf],alt[indexdf])
+            local_sky=SkyCoord(azi[indexdf],alt[indexdf],frame=frame_hor, unit=u.deg)
+            print("after local sky")
+            gal=local_sky.transform_to('galactic')
+            gal_l.append(gal.l)
+            gal_b.append(gal.b)
+        
+    final=SkyCoord(l=gal_l,b=gal_b,frame='galactic', unit=u.deg)
+    return final
+
+def SPEEDcoordinateconverter(listofdataframe):
+    antares_lat=42.8  #42°48\' N
+    antares_lon=-6.17  #6°10' E ->  minus??
+    locationAntares = locationAntares= EarthLocation(lat=-antares_lat*u.deg , lon=(antares_lon+180)*u.deg, height= -12000*u.m)
     gal_l=[]
     gal_b=[]
-    print("alt (deg)",alt)
-    print("azi (deg)",azi)
-    for indexdf in range(len(alt)):
-        print("A",indexdf)
-        print(evt_time[indexdf])
-        obstime = Time(evt_time[indexdf],format='mjd').to_value('isot')
-        print("TIME",obstime)
+    print("entering")
+    for dataframe in listofdataframe:
+        #after the cut the muon dataframe is empty, so keep attention and skip it !
+        if dataframe.empty:
+            print ("ciccio")
+            continue
+        evt_time=np.array(dataframe['DateMJD'])
+        print(evt_time)
+        #azi=np.degrees(np.array(dataframe['TantraZenith']))
+        #alt=np.degrees(np.pi/2+np.array(dataframe['TantraAzimuth']))
+        azi=np.degrees(np.array(dataframe['AAAzimuth']))
+        #conversion of the altitude to zeith!!!!
+        alt=np.degrees(np.pi/2+np.array(dataframe['AAZenith']))
+        print("alt (deg)",alt)
+        print("azi (deg)",azi)
+        obstime = Time(evt_time,format='mjd').to_value('isot')
         frame_hor = AltAz(obstime=obstime, location=locationAntares)
-        print("After frame constructor")
-        print(azi[indexdf],alt[indexdf])
-        local_sky=SkyCoord(azi[indexdf],alt[indexdf],frame=frame_hor, unit=u.deg)
+        #print(azi[indexdf],alt[indexdf])
+        local_sky=SkyCoord(azi,alt,frame=frame_hor, unit=u.deg)
         print("after local sky")
         gal=local_sky.transform_to('galactic')
+        print("after transformation")
         gal_l.append(gal.l)
         gal_b.append(gal.b)
-
+        
     final=SkyCoord(l=gal_l,b=gal_b,frame='galactic', unit=u.deg)
     return final
 
@@ -365,12 +416,10 @@ if __name__ == "__main__":
             cut.append(weight_astro_spectrum(selection))
         else:
             listofdf.append(weight_astro_spectrum(df))
-        #print('TANTRA',df['TantraEnergy'])
-        #print('MCE',df['MCE'])
         #if 'DATA' in a:
             #data_extractor(df,a)
             #histo_dataframe(df,a)
-                #plotterskymap(coordinateconverter(selection))
+            #plotterskymap(coordinateconverter(selection))
          #   else:
          #       print('wait')
                 #plotterskymap(coordinateconverter(df))
@@ -378,7 +427,8 @@ if __name__ == "__main__":
             #plot_MC_RECO(df)
     print("--------GLOBAL----------")
     if option=='cut':
-        plot_reco_energy_distro(cut,filename)
+        #plot_reco_energy_distro(cut,filename)
+        plotterskymap(SPEEDcoordinateconverter(cut))
     else:
         plot_reco_energy_distro(listofdf,filename)
     #plotBDT(listofdf,filename,option)
