@@ -144,7 +144,9 @@ def weight_astro_spectrum(df):
     my_spectral_norm = 3.5 * 10**-12 * 10**(3*my_spectral_index)  #Neutrino Energy in GeV
     #imporvements of cpu time of a factor 1000 minimum !!!!
     new_w3_weight=np.array(df['w2'])*my_spectral_norm*np.power(np.array(np.power(10,df['MCE'])),-my_spectral_index)
+    error_norm=(4.9 *10**-12 * 10**(3*my_spectral_index))*np.power(np.array(np.power(10,df['MCE'])),-my_spectral_index)*np.array(df['w2']) #energy of nu in GeV  
     df['new_w3'] = np.array(new_w3_weight)
+    df['error_norm'] = np.array(error_norm)
     print("done")
     return df
 
@@ -167,6 +169,7 @@ def plot_reco_energy_distro(listofdf,filename):
     atmo_nu_mu=[]
     atmo_nu_mu_w=[]
 
+    error_norm=[]
     
     for counter, df in enumerate(listofdf):
         if 'DATA' in filename[counter]:
@@ -189,12 +192,13 @@ def plot_reco_energy_distro(listofdf,filename):
         #collecting all the weights to produce the cosmic spectrum
         if 'new_w3' in df.keys():
             cosmic_weight_new.append(list(df['new_w3']))
+            error_norm.append(list(df['error_norm']))
             
 
         cosmic_weight_old_fede.append(list(df['WeightAstro']))
         cosmic_weight_old_w3.append(np.array(df['w3']))
         
-        
+    
     #sum atmo plot
     sumnue_ene=list(itertools.chain.from_iterable(atmo_nu_e))
     sumnumu_ene=list(itertools.chain.from_iterable(atmo_nu_mu))
@@ -209,13 +213,19 @@ def plot_reco_energy_distro(listofdf,filename):
     sumcomsic_ene=list(itertools.chain.from_iterable(cosmic_all))
     if 'new_w3' in df.keys():
         sumcosmicw3_new=list(itertools.chain.from_iterable(cosmic_weight_new))
+        sumerrornorm_new=list(itertools.chain.from_iterable(error_norm))
+        print("error norm",len(sumerrornorm_new))
         weigh=np.array(sumcosmicw3_new)
         print("weigh len",len(weigh))
         #print("Ciccio")
         histtn,binssn,_=ax.hist(sumcomsic_ene,bins=50,histtype=u'step',weights=np.array(weigh)*livetime,label='E-2.5 spectrum')
 
+        ax.hist(sumcomsic_ene,bins=50,histtype=u'step',weights=np.array(sumerrornorm_new)*livetime,label='U-L for E-2.5',linestyle=('dashed'))
+
         #error derived by the norm flux uncertanty!
-        dy=np.array(1.4 *10**-12)*np.power(np.power(10,np.array(binssn[1:])+np.array(binssn[:-1]))*10**-3,-2.5)
+        dy=0#np.array(1.4 *10**-12)*np.power(np.power(10,np.array(binssn[1:])+np.array(binssn[:-1]))*10**-3,-2.5)
+        #dy=np.array(sumerrornorm_new)*livetime
+        print(dy)
         plt.errorbar((np.array(binssn[1:])+np.array(binssn[:-1]))/2, np.array(histtn), yerr=dy, fmt='.k', color='black',ecolor='lightgray', elinewidth=3, capsize=0)
         ax2.plot((np.array(binssn[1:])+np.array(binssn[:-1]))/2, np.array(histtn)*np.power(np.power(10,(np.array(binssn[1:])+np.array(binssn[:-1]))/2),2.5),'r+')
         ax2.set_xlabel('log10(E/GeV)')
@@ -427,8 +437,8 @@ if __name__ == "__main__":
             #plot_MC_RECO(df)
     print("--------GLOBAL----------")
     if option=='cut':
-        #plot_reco_energy_distro(cut,filename)
-        plotterskymap(SPEEDcoordinateconverter(cut))
+        plot_reco_energy_distro(cut,filename)
+        #plotterskymap(SPEEDcoordinateconverter(cut))
     else:
         plot_reco_energy_distro(listofdf,filename)
     #plotBDT(listofdf,filename,option)
