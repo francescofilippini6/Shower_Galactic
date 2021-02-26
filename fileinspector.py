@@ -322,39 +322,70 @@ def histo_dataframe(df,filename):
 #            dataframe['gal_coord']=final
 #        return final
 
-def SPEEDcoordinateconverter(listofdataframe):
+#onverter(listofdataframe):
+#  #42°48\' N
+#7  #6°10' E ->  minus??
+#= locationAntares= EarthLocation(lat=-antares_lat*u.deg , lon=(antares_lon+180)*u.deg, height= -12000*u.m)
+#)
+# listofdataframe:
+#
+#
+#ut the muon dataframe is empty, so keep attention and skip it !
+#.empty:
+#ciccio")
+#
+#array(dataframe['DateMJD'])
+#me)
+#ees(np.array(dataframe['TantraZenith']))
+#ees(np.pi/2+np.array(dataframe['TantraAzimuth']))
+#es(np.array(dataframe['AAAzimuth']))
+#of the altitude to zeith!!!!
+#es(np.pi/2+np.array(dataframe['AAZenith']))
+#deg)",alt)
+#deg)",azi)
+#me(evt_time,format='mjd').to_value('isot')
+#AltAz(obstime=obstime, location=locationAntares)
+#ndexdf],alt[indexdf])
+#yCoord(azi,alt,frame=frame_hor, unit=u.deg)
+# local sky")
+#y.transform_to('galactic')
+# transformation")
+#(gal.l)
+#(gal.b)
+#rd(l=gal_l,b=gal_b,frame='galactic', unit=u.deg)
+
+def SPEED2coordinateconverter(listofdataframe):
     antares_lat=42.8  #42°48\' N
     antares_lon=-6.17  #6°10' E ->  minus??
-    locationAntares = locationAntares= EarthLocation(lat=-antares_lat*u.deg , lon=(antares_lon+180)*u.deg, height= -12000*u.m)
+    locationAntares = locationAntares= EarthLocation(lat=antares_lat*u.deg , lon= antares_lon *u.deg, height= -2500*u.m)
     print("entering")
     for dataframe in listofdataframe:
-        gal_l=[]
-        gal_b=[]
+        #gal_l=[]
+        #gal_b=[]
         #after the cut the muon dataframe is empty, so keep attention and skip it !
         if dataframe.empty:
             print ("ciccio")
             continue
         evt_time=np.array(dataframe['DateMJD'])
         print(evt_time)
-        #azi=np.degrees(np.array(dataframe['TantraZenith']))
-        #alt=np.degrees(np.pi/2+np.array(dataframe['TantraAzimuth']))
-        azi=np.degrees(np.array(dataframe['AAAzimuth']))
-        #conversion of the altitude to zeith!!!!
-        alt=np.degrees(np.pi/2+np.array(dataframe['AAZenith']))
-        print("alt (deg)",alt)
-        print("azi (deg)",azi)
+        azi=np.array(dataframe['TantraAzimuth'])
+        #it is called zenith but it is already the alt!!! Zenith (0,180), alt(-90,90)=90-zenith
+        alt=np.array(dataframe['TantraZenith'])
+        #azi=np.degrees(np.array(dataframe['AAAzimuth']))
+        #alt=(np.array(dataframe['AAZenith']))
+        print("alt (deg)",180*alt/np.pi)
+        #print("azi (deg)",azi)
         obstime = Time(evt_time,format='mjd').to_value('isot')
         frame_hor = AltAz(obstime=obstime, location=locationAntares)
         #print(azi[indexdf],alt[indexdf])
-        local_sky=SkyCoord(azi,alt,frame=frame_hor, unit=u.deg)
+        local_sky=SkyCoord(azi,alt,frame=frame_hor, unit=u.rad)
         print("after local sky")
         gal=local_sky.transform_to('galactic')
         print("after transformation")
-        gal_l.append(gal.l)
-        gal_b.append(gal.b)
-        final=SkyCoord(l=gal_l,b=gal_b,frame='galactic', unit=u.deg)
+        dataframe['gal_l'] = np.array(gal.l)
+        dataframe['gal_b'] = np.array(gal.b)
         
-        return final
+    return listofdataframe
 
 
 
@@ -368,32 +399,44 @@ def km3astro_coordinateconverter(listofdataframe):
             print ("ciccio")
             continue
         evt_time=np.array(dataframe['DateMJD'])
-        print(evt_time)
-        #obstime = Time(evt_time,format='mjd').to_value('isot')
+        print(len(evt_time))
+        obstime = Time(evt_time,format='mjd').to_value('isot')
         #for t in obstime:
         #    print(t)
-        #print(np.dtype(np.array(obstime)))
-        obstime = Time('2020-12-27T20:00')
-        #azimuth=np.array(dataframe['TantraAzimuth'])
-        azimuth=np.array(dataframe['AAAzimuth'])
-        zenith=np.array(dataframe['AAZenith'])
+        #obstime = Time('2020-12-27T20:00')
+
+        azimuth=np.array(dataframe['TantraAzimuth'])
+        #con l'inserto di np.pi/2 non da più errore. Come mai?
+        zenith=np.pi/2+np.array(dataframe['TantraZenith'])
+        print(np.degrees(zenith))
         #for a in np.degrees(azimuth):
             #print(a)
-        for b in np.degrees(zenith):
-            print(b)
-            if b>90 or b<-90:
-                print("MERDA")
+        #for b in np.degrees(zenith):
+            #print(b)
+            #if b>90 or b<-90:
+            #    print("MERDA")
         #azimuth, zenith = neutrino_to_source_direction(azimuth, zenith)
         evt = local_event(azimuth, obstime, zenith, location="antares")
         #print(evt)
-        #gal=evt.transform_to('galactic')
-        #df['gal_l'] = np.array(gal.l)
-        #df['gal_b'] = np.array(gal.b)
+        gal=evt.transform_to('galactic')
+        #print(len(gal.l))
+        dataframe['gal_l'] = np.array(gal.l)
+        dataframe['gal_b'] = np.array(gal.b)
 
         #final=SkyCoord(l=gal.l,b=gal.b,frame='galactic', unit=u.deg)
     return listofdataframe
 
 def galctic_ridge_event_selector(listofdataframe):
+    for dataframe in listofdataframe:
+        l_limit=40
+        b_limit=3
+        flag=[]
+        for index in range(len(dataframe['gal_b'])):
+            #obj=SkyCoord(
+            if m.abs(dataframe['gal_b']) < b_limit and m.abs(dataframe['gal_l'])<l_limit:
+                flag.append('sign')
+                continue
+            elif 
     print(listofdataframe[0].keys())
 
 def cat2hpx(lon, lat, nside, radec=True):
@@ -488,7 +531,8 @@ if __name__ == "__main__":
     print("--------GLOBAL----------")
     if option=='cut':
         #plot_reco_energy_distro(cut,filename)
-        GALACTIC=km3astro_coordinateconverter(cut)
+        #GALACTIC=km3astro_coordinateconverter(cut)
+        GALACTIC=SPEED2coordinateconverter(cut)
         galctic_ridge_event_selector(GALACTIC)
     else:
         plot_reco_energy_distro(listofdf,filename)
