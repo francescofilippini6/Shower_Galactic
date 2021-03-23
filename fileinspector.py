@@ -10,17 +10,17 @@ from astropy.coordinates import SkyCoord, EarthLocation, AltAz, concatenate
 from astropy.time import Time
 import healpy as hp
 from scipy.optimize import curve_fit
-import seaborn as seabornInstance
+import seaborn as sns
 from matplotlib.gridspec import GridSpec
-from km3astro.coord import (
-    local_event,
-    neutrino_to_source_direction,
-    sun_local,
-    get_location,
-    convergence_angle,
-    utm_zone,
-    longitude_of_central_meridian,
-)
+#from km3astro.coord import (
+#    local_event,
+#    neutrino_to_source_direction,
+#    sun_local,
+#    get_location,
+#    convergence_angle,
+#    utm_zone,
+#    longitude_of_central_meridian,
+#)
 
 def reader(filename):
     df = pd.read_hdf(filename)
@@ -287,7 +287,10 @@ def histo_dataframe(df,filename):
             axx.hist(list(df[key]),bins=50,histtype=u'step')
     plt.show()
     return  fig
-    
+
+def histo_sn(df,filename):
+    sns.pairplot(df,hue="species", diag_kind="hist")
+    plt.show()
 
 #def coordinateconverter(listofdataframe):
 #    antares_lat=42.8  #42°48\' N
@@ -384,7 +387,7 @@ def SPEED2coordinateconverter(listofdataframe):
         print("after transformation")
         dataframe['gal_l'] = np.array(gal.l)
         dataframe['gal_b'] = np.array(gal.b)
-        
+        print(gal.l)
     return listofdataframe
 
 
@@ -432,12 +435,18 @@ def galctic_ridge_event_selector(listofdataframe):
         b_limit=3
         flag=[]
         for index in range(len(dataframe['gal_b'])):
-            #obj=SkyCoord(
-            if m.abs(dataframe['gal_b']) < b_limit and m.abs(dataframe['gal_l'])<l_limit:
-                flag.append('sign')
-                continue
-            elif 
+            bkg=SkyCoord(dataframe['gal_l'][index]*180/np.pi, dataframe['gal_b'][index]*180/np.pi, frame="galactic", unit="deg")
+            equatorial=bkg.transform_to("icrs")
+            booleanL=dataframe['gal_l'][index]< 40 *u.deg or dataframe['gal_l'][index] > 320 *u.deg
+            if booleanL and abs(dataframe['gal_b'])<b_limit*u.deg:
+                flag.append('signal')
+            elif equatorial.dec<8 and equatorial.dec>-61:
+                flag.append('background')
+            else:
+                flag.append('outOR')
+        dataframe['classifier']=np.array(flag)
     print(listofdataframe[0].keys())
+    return listofdataframe
 
 def cat2hpx(lon, lat, nside, radec=True):
     """
@@ -512,6 +521,7 @@ if __name__ == "__main__":
     for a in filename:
         print('retrieving file: ',a)
         df=reader(a)
+        histo_sn(df,a)
         if option=='cut':
             selection=cut_dataframe_bdts(df)
             cut.append(weight_astro_spectrum(selection))

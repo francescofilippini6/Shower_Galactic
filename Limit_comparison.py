@@ -13,8 +13,8 @@ from astropy import coordinates as coord
 from astropy.coordinates.tests.utils import randomly_sample_sphere
 from astropy.time import Time
 from astropy import units as u
-from skyfield.api import load
-from skyfield.api import Topos
+#from skyfield.api import load
+#from skyfield.api import Topos
 from collections import OrderedDict
 
 import numpy as np
