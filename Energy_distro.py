@@ -60,10 +60,17 @@ def plot_reco_energy_distro(df):
     livetime=3012/365
     fig = plt.figure()
     ax=fig.add_subplot(111)
+    #ax.hist(df['TantraEnergy'],bins=50,histtype='step',weights=np.array(df['new_w3'])*livetime,label='nu cosmic total')
+    print("first cut")
+    df=df[df['predicted_label']<0.1]
     print("first histo")
-    ax.hist(df['TantraEnergy'],bins=50,histtype=u'step',weights=np.array(df['WeightAtmo'])*livetime,label='nu atmo, prediction 0')
+    ax.hist(df['TantraEnergy'],bins=50,histtype='step',weights=np.array(df['WeightAtmo'])*livetime,label='nu atmo, prediction 0')
     print("second histo")
-    ax.hist(df['TantraEnergy'],bins=50,histtype=u'step',weights=np.array(df['new_w3'])*livetime,label='nu cosmic, prediction 0, -2.5')
+    ax.hist(df['TantraEnergy'],bins=50,histtype='step',weights=np.array(df['new_w3'])*livetime,label='nu cosmic, prediction 0, -2.4')
+    print("second cut")
+    df1=df[df['predicted_label']>0.8]
+    print("third histo")
+    ax.hist(df1['TantraEnergy'],bins=50,histtype='step',weights=np.array(df1['WeightAtmo'])*livetime,label='nu atmo, prediction 1')
     ax.set_xlabel('log10(E/GeV)')
     ax.set_ylabel(r'$\frac{dN}{dE}$')
     ax.set_yscale('log')
@@ -74,10 +81,11 @@ def plot_reco_energy_distro(df):
 if __name__ == "__main__":
     filename=sys.argv[1]
     df=reader(filename)
-    print("LENGTH:",len(df['TriggerT3']))
-    print(Counter(df['label']))
-    print(Counter(df['interaction_type']))
+    #print("LENGTH:",len(df['TriggerT3']))
+    #print(Counter(df['label']))
+    #print(Counter(df['interaction_type']))
     print(df.keys())
-    df1=weight_astro_spectrum(cut_on_prediction(df))
+    #df1=weight_astro_spectrum(cut_on_prediction(df))
+    df1=weight_astro_spectrum(df)
     print("plotting")
     plot_reco_energy_distro(df1)

@@ -9,9 +9,7 @@ import astropy.units as u
 from astropy.coordinates import SkyCoord, EarthLocation, AltAz, concatenate
 from astropy.time import Time
 import healpy as hp
-from scipy.optimize import curve_fit
 import seaborn as sns
-from matplotlib.gridspec import GridSpec
 import json
 import h5py
 import os
@@ -48,8 +46,8 @@ def preprocessing(df1,df2):
     scaler = StandardScaler().fit(aa)
     #scaler = StandardScaler().fit(features)
     features = scaler.transform(features)
-    print("MEAN",features.mean(axis=0))
-    print("STD",features.std(axis=0))
+    #print("MEAN",features.mean(axis=0))
+    #print("STD",features.std(axis=0))
     return features
 
 def model_predicter(df):
@@ -65,34 +63,63 @@ def model_predicter(df):
     y_pred=loaded_model.predict(df)
     return y_pred
 
+def predicted_label_distribution(dfa,lista):
+    notnumucc=[]
+    numucc=[]
+    labela=dfa.iloc[:,49:50].values
+    labelb=np.concatenate(labela, axis=0)
+    print("start the distribution")
+    for a in range(len(labelb)):
+        if labelb[a]<0.1:
+            notnumucc.append(lista[a])
+        elif labelb[a]>0.8:
+            numucc.append(lista[a])
+        else:
+            print("Something wrong")
+    print("finished splitting")
+    histo1,bin_edges=np.histogram(notnumucc, bins=np.linspace(-0.5,1.05,30))#[0, 0.1, 0.2, 0.3,0.4,0.5,0.6,0.7,0.8,0.9,1])
+    histo2=np.histogram(numucc, bins=bin_edges)
+    print("histo1:", histo1)
+    print("histo2:", histo2)
+    return(histo1,histo2)
+    #fig = plt.figure()
+    #ax=fig.add_subplot(111)
+    #ax.hist(notnumucc,bins=30,histtype='step',label='0 NN output distro')
+    #ax.hist(numucc,bins=30,histtype='step',label='1 NN output distro')
+    #plt.show()
+    #return fig
 
 if __name__ == "__main__":
     filename=sys.argv[1]
     scaler_distro=sys.argv[2]
     df=reader(filename)
     df1=reader(scaler_distro)
-    #df1=cut_dataframe_bdts(df)
-    #df=df[df['interaction_type']=='numuCC']
+    if "MUON" in filename:
+        df=cut_dataframe_bdts(df)
+        print("MUON cut bdt")
     print("dataframe cut", len(df['TriggerT3']))
     predicted_labels=model_predicter(preprocessing(df1,df))
-    y_pr=[]
-    counter0=0
-    counter1=0
-    for a in predicted_labels:
-        if a > 0.5:
-            y_pr.append(1)
-            counter1+=1
-        else:
-            y_pr.append(0)
-            counter0+=1
-    df['predicted_label']=y_pr
-    print(df1.keys())
-    df.to_hdf('Prediction_MC_all_data_BDT_CUT_0.12.h5', key='df', mode='w')
-    df_cm=confusion_matrix(df['label'],y_pr)
+    #predicted_label_distribution(df,predicted_labels)
+    # y_pr=[]
+    # for a in predicted_labels:
+    #     if a > 0.5:
+    #         y_pr.append(1)
+    # 
+    #     else:
+    #         y_pr.append(0)
+    # 
+    df['predicted_label']=predicted_labels
+    #print("Classification",Counter(y_pr))
+    print("storing result")
+    df.to_hdf('MUON_Prediction_BDT_0.12.h5', key='df', mode='w',format='table')
+
+    #store = pd.HDFStore('HDF5_store_predicted.h5')
+    #store.append('df',df)
+    df_cm=confusion_matrix(np.ones(len(y_pr)),y_pr,sample_weight=df['WeightAtmo'])
     ax = plt.axes()
-    ax.set_title('Total MC sample BDT>0.12')
+    ax.set_title(' sample')
     sns.heatmap(df_cm, annot=True,cmap=plt.cm.Blues, fmt='g',ax=ax)
     ax.set_ylabel('true')
     ax.set_xlabel('predicted')
     plt.show()
-    #print("accuracy: ",counter0/(counter1+counter0))
+    
