@@ -59,7 +59,8 @@ def reader(filename):
     # if dd  then ,key='df')
     return df
 
-def SPEED2coordinateconverter(dfaa):
+def SPEED2coordinateconverter(dfa,cc):
+    print("CC:",cc)
     antares_northing = 4742381.9
     antares_easting = 268221.6
     antares_height = -2500  # m     (guessed, probably similar to orca)
@@ -71,28 +72,27 @@ def SPEED2coordinateconverter(dfaa):
     #antares_lat=42.8  #42?48\' N
     #antares_lon=-6.17  #6?10' E ->  0 / +180 east; 0/-180 west
     locationAntares = locationAntares= EarthLocation(lat=antares_latitude*u.deg , lon= antares_longitude*u.deg, height= antares_height*u.m)
-    Zenith=np.array(dfa['TantraZenith'])
-    azi=np.array(dfa['TantraAzimuth'])
-    Timemjd=np.array(dfa['DateMJD'])
-    print(len(Timemjd))
+    Zenith=np.array(dfa.TantraZenith)
+    azi=np.array(dfa.TantraAzimuth)
+    print("azi",azi)
+    Timemjd=np.array(dfa.DateMJD)
+    print("Array:",Timemjd)
+    print("LEN:",len(Timemjd))
+    print("TYPE:",Timemjd.dtype)
     alt=np.array(np.pi/2-np.arccos(Zenith))
-    #azi=np.array(dfa['TantraAzimuth'])
-    print("entering")
-    #for i in range(10):
-    #now = datetime.now()
-    #print(now)
     #shift=4.5/24+i*(1-4.5/24-7.2/24)/9
     evt_time=Timemjd#+shift
-    print(evt_time)
+    #print(evt_time)
     obstime = Time(evt_time,format='mjd')#.to_value('isot')
     frame_hor = AltAz(obstime=obstime, location=locationAntares)
     local_sky=SkyCoord(azi,alt,frame=frame_hor, unit=u.rad)
     print("Now local to galactic")
     gal=local_sky.galactic#transform_to('galactic')
-    dfa['gal_l']=gal.l
-    dfa['gal_b']=gal.b
+    #dfa['gal_l']=gal.l
+    #dfa['gal_b']=gal.b
+    #return dfa
+    dfa.assign(gal_lat=gal.l,gal_lon=gal.b)
     return dfa
-    #return dfa.assign(result=(gal.l,gal.b))
 
 
 
@@ -106,12 +106,13 @@ if __name__ == "__main__":
     #SPEED2coordinateconverter(df)
     #    df.apply_parallel(SPEED2coordinateconverter, num_processes= (mp.cpu_count() - 1))
     #   df = df.swifter.apply(SPEED2coordinateconverter)
-    N=10
+    N=6
     dfp = dd.from_pandas(df, npartitions=N)
     print("Before map partition")
     #print(dfp['DateMJD'].mean().compute())   ok funziona
     #res = dfp.map_partitions(len).compute()   ok funziona
-    res = dfp.map_partitions(SPEED2coordinateconverter).compute()
+    res = dfp.map_partitions(SPEED2coordinateconverter,1)
+    res.compute()
     print("After map partition")
     print(res)
 
