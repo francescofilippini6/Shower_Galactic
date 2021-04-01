@@ -31,7 +31,7 @@ if __name__ == "__main__":
         print(Counter(df['label']))
         print(Counter(df['interaction_type']))
     print(df.keys())
-    print(Counter(df['WeightAtmo']))
+    #print(Counter(df['WeightAtmo']))
     #one_labels=[]
     #    for cc in df['TriggerT3']:
     #        if cc==1:

@@ -88,12 +88,13 @@ def SPEED2coordinateconverter(dfa,cc):
     local_sky=SkyCoord(azi,alt,frame=frame_hor, unit=u.rad)
     print("Now local to galactic")
     gal=local_sky.galactic#transform_to('galactic')
-    #dfa['gal_l']=gal.l
-    #dfa['gal_b']=gal.b
+    dfa['gal_l']=gal.l.deg
+    dfa['gal_b']=gal.b.deg
+    #dfa.assign(gal_lat=gal.l,gal_lon=gal.b)
     #return dfa
-    dfa.assign(gal_lat=gal.l,gal_lon=gal.b)
+    #
     return dfa
-
+     
 
 
 
@@ -106,16 +107,17 @@ if __name__ == "__main__":
     #SPEED2coordinateconverter(df)
     #    df.apply_parallel(SPEED2coordinateconverter, num_processes= (mp.cpu_count() - 1))
     #   df = df.swifter.apply(SPEED2coordinateconverter)
-    N=6
+    #df=df.head(100)
+    N=30
     dfp = dd.from_pandas(df, npartitions=N)
     print("Before map partition")
     #print(dfp['DateMJD'].mean().compute())   ok funziona
     #res = dfp.map_partitions(len).compute()   ok funziona
     res = dfp.map_partitions(SPEED2coordinateconverter,1)
-    res.compute()
+    dfi=res.compute()
     print("After map partition")
-    print(res)
-
-    #result = dfp.compute() 
+    print(dfi)
+    print(dfi['TantraZenith'],dfi['TantraAzimuth'],dfi['DateMJD'],dfi['gal_b'],dfi['gal_l'])
+    print("writing file")
+    dfi.to_hdf('Data_converted_partition.h5', key='df', mode='w')
     
-    #print(result)
