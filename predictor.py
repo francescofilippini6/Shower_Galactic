@@ -100,18 +100,17 @@ if __name__ == "__main__":
     print("dataframe cut", len(df['TriggerT3']))
     predicted_labels=model_predicter(preprocessing(df1,df))
     #predicted_label_distribution(df,predicted_labels)
-    # y_pr=[]
-    # for a in predicted_labels:
-    #     if a > 0.5:
-    #         y_pr.append(1)
-    # 
-    #     else:
-    #         y_pr.append(0)
-    # 
+    y_pr=[]
+    for a in predicted_labels:
+        if a > 0.5:
+            y_pr.append(1)
+        else:
+            y_pr.append(0)
+     
     df['predicted_label']=predicted_labels
     #print("Classification",Counter(y_pr))
     print("storing result")
-    df.to_hdf('MUON_Prediction_BDT_0.12.h5', key='df', mode='w',format='table')
+    df.to_hdf('Data_prediction.h5', key='df', mode='w',format='table')
 
     #store = pd.HDFStore('HDF5_store_predicted.h5')
     #store.append('df',df)

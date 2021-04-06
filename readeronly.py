@@ -24,13 +24,14 @@ def reader(filename):
 if __name__ == "__main__":
     filename=sys.argv[1]
     df=reader(filename)
-    print("LENGTH:",len(df['TriggerT3']))
-    if "MUON" in filename:
-        print("No label")
-    else:
-        print(Counter(df['label']))
-        print(Counter(df['interaction_type']))
+    print("LENGTH:",len(df['TantraEnergy']))
+    #    if "MUON" in filename:
+    #        print("No label")
+    #    else:
+    #        print(Counter(df['label']))
+    #        print(Counter(df['interaction_type']))
     print(df.keys())
+    print(df)
     #print(Counter(df['WeightAtmo']))
     #one_labels=[]
     #    for cc in df['TriggerT3']:
