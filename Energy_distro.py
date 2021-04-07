@@ -168,21 +168,28 @@ def plot_reco_energy_distro_prediction0_checkdata(df,dfmuon,dfdata):
     print("first cut")
     df0=df[df['predicted_label']<0.1]
     print("first histo")
-    ax.hist(df0['TantraEnergy'],bins=50,histtype='step',weights=np.array(df0['WeightAtmo']),label='nu atmo, prediction 0, evt number:'+ str(sum(df0['WeightAtmo'])))
-    df1=df0[df0['label']<0.1]
-    ax.hist(df1['TantraEnergy'],bins=50,histtype='step',weights=np.array(df1['WeightAtmo']),label='nu atmo, prediction 0, label 0, evt number:'+ str(sum(df1['WeightAtmo'])))
-    df1=df0[df0['label']>0.8]
-    ax.hist(df1['TantraEnergy'],bins=50,histtype='step',weights=np.array(df1['WeightAtmo']),label='nu atmo, prediction 0, label 1, evt number:'+ str(sum(df1['WeightAtmo'])))
+    #ax.hist(df0['TantraEnergy'],bins=50,histtype='step',weights=np.array(df0['WeightAtmo']),label='nu atmo, prediction 0, evt number:'+ str(sum(df0['WeightAtmo'])))
+    histatmo,bins=np.histogram(df0['TantraEnergy'],bins=50,weights=np.array(df0['WeightAtmo']))
+    #df1=df0[df0['label']<0.1]
+    #ax.hist(df1['TantraEnergy'],bins=50,histtype='step',weights=np.array(df1['WeightAtmo']),label='nu atmo, prediction 0, label 0, evt number:'+ str(sum(df1['WeightAtmo'])))
+    #df1=df0[df0['label']>0.8]
+    #ax.hist(df1['TantraEnergy'],bins=50,histtype='step',weights=np.array(df1['WeightAtmo']),label='nu atmo, prediction 0, label 1, evt number:'+ str(sum(df1['WeightAtmo'])))
     print("second histo")
-    ax.hist(df0['TantraEnergy'],bins=50,histtype='step',weights=np.array(df0['new_w3']),label='nu cosmic, prediction 0, evt number:'+ str(sum(df0['new_w3'])))
+    #ax.hist(df0['TantraEnergy'],bins=50,histtype='step',weights=np.array(df0['new_w3']),label='nu cosmic, prediction 0, evt number:'+ str(sum(df0['new_w3'])))
+    histcosmic,_=np.histogram(df0['TantraEnergy'],bins=bins,weights=np.array(df0['new_w3']))
     print("second cut")
     dfmuon=dfmuon[dfmuon['predicted_label']<0.1]
-    ax.hist(dfmuon['TantraEnergy'],bins=50,histtype='step',weights=np.array(dfmuon['WeightAtmo']),label='Atmo Muons, prediction 0, evt number:'+ str(sum(dfmuon['WeightAtmo'])))
-
-
+    #ax.hist(dfmuon['TantraEnergy'],bins=50,histtype='step',weights=np.array(dfmuon['WeightAtmo']),label='Atmo Muons, prediction 0, evt number:'+ str(sum(dfmuon['WeightAtmo'])))
+    histmuon,_=np.histogram(dfmuon['TantraEnergy'],bins=bins,weights=np.array(dfmuon['WeightAtmo']))
+    
+    histsum=histmuon+histcosmic+histatmo
     dfdata=dfdata[dfdata['predicted_label']<0.5]
-    data,bins=np.histogram(dfdata['TantraEnergy'],bins=50,weights=np.array(dfdata['WeightAtmo'])*10)
-    ax.plot((bins[:-1]+bins[1:])/2,data,'ok')
+    data,_=np.histogram(dfdata['TantraEnergy'],bins=bins,weights=np.array(dfdata['WeightAtmo'])*10)
+    ax.plot((bins[:-1]+bins[1:])/2,data,'ok',label='DATA')
+    ax.plot((bins[:-1]+bins[1:])/2,histsum,'_r',label='cosmic+atmo+muon prediction 0')
+    ax.plot((bins[:-1]+bins[1:])/2,histcosmic,'--g',label='cosmic prediction 0')
+    ax.plot((bins[:-1]+bins[1:])/2,histatmo,'--b',label='atmo prediction 0')
+    ax.plot((bins[:-1]+bins[1:])/2,histmuon,'--m',label='muon prediction 0')
     #ax.hist(dfdata['TantraEnergy'],bins=50,histtype='step',weights=np.array(dfdata['WeightAtmo'])*10,label='DATA'+ str(sum(dfdata['WeightAtmo'])))
 
 
@@ -271,9 +278,9 @@ if __name__ == "__main__":
     datacut=cut_dataframe_bdts(data)
     print(df.keys())
     df1=weight_astro_spectrum(df)    
-    
-    print('AstroWeight sum:',sum(df1['new_w3']))
-    print('AtmoWeight sum:',sum(df1['WeightAtmo']))
+    datacut=weight_astro_spectrum(datacut)    
+    #print('AstroWeight sum:',sum(df1['new_w3']))
+    #print('AtmoWeight sum:',sum(df1['WeightAtmo']))
     #angular_uncertanty(df1)
     #original_energy_distro(df1,muoncut)
     #plot_reco_energy_distro_prediction1(df1,muon)

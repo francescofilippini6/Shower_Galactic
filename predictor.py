@@ -110,7 +110,7 @@ if __name__ == "__main__":
     df['predicted_label']=predicted_labels
     #print("Classification",Counter(y_pr))
     print("storing result")
-    df.to_hdf('Data_prediction.h5', key='df', mode='w',format='table')
+    df.to_hdf('Continuos_neutrino_prediction.h5', key='df', mode='w')
 
     #store = pd.HDFStore('HDF5_store_predicted.h5')
     #store.append('df',df)

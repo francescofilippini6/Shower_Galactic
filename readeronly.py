@@ -24,6 +24,7 @@ def reader(filename):
 if __name__ == "__main__":
     filename=sys.argv[1]
     df=reader(filename)
+    
     print("LENGTH:",len(df['TantraEnergy']))
     #    if "MUON" in filename:
     #        print("No label")
@@ -32,6 +33,23 @@ if __name__ == "__main__":
     #        print(Counter(df['interaction_type']))
     print(df.keys())
     print(df)
+    #print(df['predicted_label'])
+    df1=df[df['interaction_type']=='numuCC']
+    df2=df[df['interaction_type']=='numuNC']
+
+    df1= df1[['Mestimator', 'TantraZenith', 'TantraAzimuth', 'Lambda', 'Beta',
+       'WeightAtmo', 'TantraEnergy', 'RunDurationYear', 'DateMJD', 'MCE',
+       'MCZenith', 'MCAzimuth', 'MCX', 'MCY', 'MCZ', 'MCRho', 'w2', 'w3',
+       'MCRa', 'MCDec', 'BDT_default', 'BDT__cuts_1e2', 'TantraRho']]
+
+    df2= df2[['Mestimator', 'TantraZenith', 'TantraAzimuth', 'Lambda', 'Beta',
+       'WeightAtmo', 'TantraEnergy', 'RunDurationYear', 'DateMJD', 'MCE',
+       'MCZenith', 'MCAzimuth', 'MCX', 'MCY', 'MCZ', 'MCRho', 'w2', 'w3',
+       'MCRa', 'MCDec', 'BDT_default', 'BDT__cuts_1e2', 'TantraRho']]
+    
+    print(df1.head(10))
+    print(df2.head(10))
+    
     #print(Counter(df['WeightAtmo']))
     #one_labels=[]
     #    for cc in df['TriggerT3']:

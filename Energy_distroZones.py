@@ -153,7 +153,7 @@ def ONandOFF(df):
                           'center_bin' : center,
                           'bin_edges': binning[1:]})
     
-    saver.to_csv(r'ON_OFF_histo.csv',index=False,header=True)
+    #saver.to_csv(r'ON_OFF_histo.csv',index=False,header=True)
     
     discrepancy=(np.absolute(onhisto-offhisto)/offhisto)*100
     fig = plt.figure()
@@ -184,7 +184,13 @@ def ONandOFF(df):
     ax2.set_xlabel('log10(E/GeV)')
     ax2.set_yscale('log')
     plt.show()
-    return fig
+    return saver
+    
+#def slicer(df,cut):
+#    ann_cut=cut
+#    print("Slicing dataframe at: ", ann_cut)
+#    selectedDF=df[df['cont_label_pred'] > ann_cut]
+#    return selectedD
     
 if __name__ == "__main__":
     filename=sys.argv[1]
@@ -194,7 +200,13 @@ if __name__ == "__main__":
                 'interaction_type', 'predicted_label'],axis=1)
     print(df.keys())
     df1=weight_astro_spectrum(df)
-    #df1=df1.head(100)
-    
-    #plot_ONZONE(df1)
-    ONandOFF(df1)
+    listofdf0=[]
+    #listofdf1=[]
+    ann_bin=np.linspace(0.1,0.9,9, endpoint=True)  #0.1 ,0.2 ,0.3 ,0.4 ,0.5 ,0.6 ,0.7 ,0.8 ,0.9
+    for ann_cut in ann_bin:
+        print("ann cut:",ann_cut)
+        df_0=df1[df1['cont_label_pred']<ann_cut] #-> 0 predicted
+        #df2=df1[df1['cont_label_pred']>ann_cut] #-> 1 predicted
+        listofdf0.append(ONandOFF(df_0))
+    result=pd.concat(listofdf0)
+    result.to_csv(r'MRF_2dim.csv',index=False,header=True)
