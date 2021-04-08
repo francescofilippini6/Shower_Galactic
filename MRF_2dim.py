@@ -2,6 +2,7 @@ import ROOT
 import sys
 import pandas as pd
 import matplotlib.pyplot as plt
+from matplotlib.colors import LogNorm
 import seaborn as sns
 import numpy as np
 ROOT.gInterpreter.ProcessLine('#include <TFeldmanCousins.h>')
@@ -88,25 +89,25 @@ if __name__ == "__main__":
     x = np.random.normal(0.5, 0.3, 100)
     y = np.random.normal(1, 3, 100)
     H, xedges, yedges = np.histogram2d(x,y, bins=(xedges, yedges))
-    #print(len(H[8]))
+    
     aa=[0,50,100,150,200,250,300,350,400,450]
     for i in range(9):
         print(aa[i],aa[i+1])
         df1=df[aa[i]:aa[i+1]]
         H[i]=mrf_eneergy_dimension(df1,aa[i],aa[i+1])
         print("histogram",H[i])
-        
+
+
     myextent  =[xedges[0],xedges[-1],yedges[0],yedges[-1]]
-    
     fig=plt.figure()
     ax=fig.add_subplot(121)
-    AA=ax.imshow(H.T,origin='lower',extent=myextent,interpolation='nearest',aspect='auto')
+    AA=ax.imshow(H.T,origin='lower',extent=myextent,interpolation='nearest',aspect='auto',norm = LogNorm())
     ax.set_title('MRF')
     ax.set_ylabel(r'$\log_{10}(E_{Tantra}/(GeV))$')
     ax.set_xlabel('ANN prediciton')
     fig.colorbar(AA, ax=ax)
     ax1=fig.add_subplot(122)
-    aaa=ax1.contour(H.T,extent=myextent,linewidths=1,cmap='Set2')
+    aaa=ax1.contourf(H.T,extent=myextent,linewidths=1,cmap='Set2',norm = LogNorm())
     #ax1.clabel(aaa,inline=True,fmt='%1.1f',fontsize=6)
     plt.show()
     

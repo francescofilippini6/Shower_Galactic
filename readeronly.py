@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import math as m
 import sys
+import utm
 import itertools
 import astropy.coordinates as coord
 import astropy.units as u
@@ -21,6 +22,35 @@ def reader(filename):
     df = pd.read_hdf(filename)
     return df
 
+
+def SPEED2coordinateconverter(dfa,cc):
+    antares_northing = 4742381.9
+    antares_easting = 268221.6
+    antares_height = -2500  # m     (guessed, probably similar to orca)
+    antares_utm_zone_number = 32
+    antares_utm_zone_letter = "N"
+    antares_utm_zone = "{num}{let}".format(num=antares_utm_zone_number, let=antares_utm_zone_letter)
+    antares_latitude, antares_longitude = utm.to_latlon(antares_easting, antares_northing, antares_utm_zone_number, antares_utm_zone_letter)
+    print(antares_latitude,antares_longitude)
+    locationAntares = locationAntares= EarthLocation(lat=antares_latitude*u.deg , lon= antares_longitude*u.deg, height= antares_height*u.m)
+    Zenith=np.array(dfa.MCZenith)
+    print("MCZenith",Zenith)
+    print(min(Zenith))
+    print(max(Zenith))
+    
+    azi=np.array(dfa.MCAzimuth)
+    alt=np.array(np.pi/2-np.arccos(Zenith))
+    Timemjd=np.array(dfa.DateMJD)
+    evt_time=Timemjd
+    obstime = Time(evt_time,format='mjd')
+    frame_hor = AltAz(obstime=obstime, location=locationAntares)
+    local_sky=SkyCoord(azi,alt,frame=frame_hor, unit=u.rad)
+    print("Now local to galactic")
+    gal=local_sky.galactic
+    return (gal.l.deg,gal.b.deg)
+
+
+
 if __name__ == "__main__":
     filename=sys.argv[1]
     df=reader(filename)
@@ -31,24 +61,38 @@ if __name__ == "__main__":
     #    else:
     #        print(Counter(df['label']))
     #        print(Counter(df['interaction_type']))
+
     print(df.keys())
-    print(df)
-    #print(df['predicted_label'])
-    df1=df[df['interaction_type']=='numuCC']
-    df2=df[df['interaction_type']=='numuNC']
+    #print(df)
+    print(Counter(df['label']))
+    print(Counter(df['interaction_type']))
 
-    df1= df1[['Mestimator', 'TantraZenith', 'TantraAzimuth', 'Lambda', 'Beta',
-       'WeightAtmo', 'TantraEnergy', 'RunDurationYear', 'DateMJD', 'MCE',
-       'MCZenith', 'MCAzimuth', 'MCX', 'MCY', 'MCZ', 'MCRho', 'w2', 'w3',
-       'MCRa', 'MCDec', 'BDT_default', 'BDT__cuts_1e2', 'TantraRho']]
-
-    df2= df2[['Mestimator', 'TantraZenith', 'TantraAzimuth', 'Lambda', 'Beta',
-       'WeightAtmo', 'TantraEnergy', 'RunDurationYear', 'DateMJD', 'MCE',
-       'MCZenith', 'MCAzimuth', 'MCX', 'MCY', 'MCZ', 'MCRho', 'w2', 'w3',
-       'MCRa', 'MCDec', 'BDT_default', 'BDT__cuts_1e2', 'TantraRho']]
-    
-    print(df1.head(10))
-    print(df2.head(10))
+    # #df=df.head(10)
+    # print("usual conversion",SPEED2coordinateconverter(df,1))
+    # ra=np.array(df['MCRa'])
+    # dec=np.array(df['MCDec'])
+    # print("RA",ra)
+    # print("DEC",dec)
+    # asky=SkyCoord(ra=ra*u.rad,dec=dec*u.rad,frame='icrs')
+    # ga=asky.galactic
+    # print(ga.l.deg)
+    # print(ga.b.deg)
+    # #print(df['predicted_label'])
+    #    df1=df[df['interaction_type']=='numuCC']
+    #    df2=df[df['interaction_type']=='numuNC']
+    #
+    #    df1= df1[['Mestimator', 'TantraZenith', 'TantraAzimuth', 'Lambda', 'Beta',
+    #       'WeightAtmo', 'TantraEnergy', 'RunDurationYear', 'DateMJD', 'MCE',
+    #       'MCZenith', 'MCAzimuth', 'MCX', 'MCY', 'MCZ', 'MCRho', 'w2', 'w3',
+    #       'MCRa', 'MCDec', 'BDT_default', 'BDT__cuts_1e2', 'TantraRho']]
+    #
+    #    df2= df2[['Mestimator', 'TantraZenith', 'TantraAzimuth', 'Lambda', 'Beta',
+    #       'WeightAtmo', 'TantraEnergy', 'RunDurationYear', 'DateMJD', 'MCE',
+    #       'MCZenith', 'MCAzimuth', 'MCX', 'MCY', 'MCZ', 'MCRho', 'w2', 'w3',
+    #       'MCRa', 'MCDec', 'BDT_default', 'BDT__cuts_1e2', 'TantraRho']]
+    #    
+    #print(df1.head(10))
+    #print(df2.head(10))
     
     #print(Counter(df['WeightAtmo']))
     #one_labels=[]

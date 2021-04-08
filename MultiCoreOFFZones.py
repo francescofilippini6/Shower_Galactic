@@ -35,7 +35,7 @@ def SPEED2coordinateconverter(dfa,cc):
     azi=np.array(dfa.TantraAzimuth)
     alt=np.array(np.pi/2-np.arccos(Zenith))
     Timemjd=np.array(dfa.DateMJD)
-    for i in range(6,10):   #for i in range(10):
+    for i in range(10):   #for i in range(10):
         shift=4.5/24+i*(1-4.5/24-7.2/24)/9
         evt_time=Timemjd+shift
         obstime = Time(evt_time,format='mjd')
@@ -55,7 +55,7 @@ if __name__ == "__main__":
     filename=sys.argv[1]
     df=reader(filename)
     #print("LENGTH:",len(df['TriggerT3']))
-    #df=df.drop(['AAZenith', 'AAAzimuth','Trigger3N', 'TriggerT3','IntegralCharge','MeanCharge', 'StdCharge','TriggerCounter','TantraLines','TantraHits', 'Trigger3N', 'TriggerT3', 'Nrun','TriggerCounter', 'FrameIndex', 'MCNGenEvent', 'MCNuType','MCLeadingParticle', 'MCMultiplicity',  'TantraAngularEstimator', 'TantraX', 'TantraY','TantraZ', 'NOnTime', 'GridQuality', 'TrackLength','WeightAstro','NEW_LIKELIHOOD_3D_ATMO', 'NEW_LIKELIHOOD_3D_ASTRO'],axis=1)
+    df=df.drop(['AAZenith', 'AAAzimuth','Trigger3N', 'TriggerT3','IntegralCharge','MeanCharge', 'StdCharge','TriggerCounter','TantraLines','TantraHits', 'Trigger3N', 'TriggerT3', 'Nrun','TriggerCounter', 'FrameIndex', 'MCNGenEvent', 'MCNuType','MCLeadingParticle', 'MCMultiplicity',  'TantraAngularEstimator', 'TantraX', 'TantraY','TantraZ', 'NOnTime', 'GridQuality', 'TrackLength','WeightAstro','NEW_LIKELIHOOD_3D_ATMO', 'NEW_LIKELIHOOD_3D_ASTRO'],axis=1)
     print(df.keys())
     N=8
     #df=df.head(100)
@@ -68,4 +68,4 @@ if __name__ == "__main__":
     
     print("writing file")
     #dfi.to_hdf('ON_OFF_converted_partition.h5', key='df', mode='w')
-    dfi.to_hdf('OFFzones_9_ON_zones.hdf', '/df')    
+    dfi.to_hdf('OFFZones_Muon_bdtless0.12.hdf', '/df')    

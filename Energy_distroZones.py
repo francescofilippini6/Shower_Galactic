@@ -54,6 +54,28 @@ def weight_astro_spectrum(df):
     print("done")
     return df
 
+
+def new_weighter(df):
+    identifier=list(range(len(df['interaction_type'])))
+    df['identifier']=identifier
+    weight=[]
+    #excluding muons
+    dfslice=df[df['interaction_type'].str.contains("nu")]
+    #excluding particles out of the direction
+    dfslice=zonesSelection(dfslice,'MC_gal_b', 'MC_gal_l')
+    new_w3_weight=(np.array(dfslice['w2'])*(4.8*10**-7))/(np.power(np.array(np.power(10,dfslice['MCE'])),2.3))*(10**4)*(0.5)/0.023
+    dfslice['new_w3'] = np.array(new_w3_weight)
+    print("done")
+    #df=df.reset_index().melt(id_vars='gene', value_name='quantile')
+    print("merging")
+    final=pd.merge(df,dfslice[['identifier','new_w3']], on='identifier', how='left')
+    #final=df.merge(dfslice, on='identifier', how='left')
+    final['new_w3'] = final['new_w3'].fillna(0)
+    final=final.drop(['identifier'],axis=1)
+    print(final.keys())
+    print("out")
+    return final
+
 def zonesSelection(df,lat,lon):
     print("cut on b latitude")
     df=df[np.absolute(df[lat])<3]
@@ -100,8 +122,8 @@ def plot_ONZONE(df,bins):
     #--------------------------------------------------
     #  also MC zenith and azimuth must be in the ON region
     #--------------------------------------------------
-    df=converterMC(df)
-    df=zonesSelection(df,'gal_b_MC','gal_l_MC')
+    #df=converterMC(df)
+    #df=zonesSelection(df,'gal_b_MC','gal_l_MC')
 
     hist1, _ = np.histogram(df['TantraEnergy'], bins=bins,weights=np.array(df['new_w3']))    
     
@@ -196,17 +218,19 @@ if __name__ == "__main__":
     filename=sys.argv[1]
     df=reader(filename)
     df=df.drop(['Mestimator', 'TantraZenith', 'TantraAzimuth', 'Lambda', 'Beta', 'RunDurationYear', 'MCX', 'MCY', 'MCZ', 'MCRho', 'w3',
-       'MCRa', 'MCDec', 'BDT_default', 'BDT__cuts_1e2', 'TantraRho', 'label',
-                'interaction_type', 'predicted_label'],axis=1)
+       'MCRa', 'MCDec', 'BDT_default', 'BDT__cuts_1e2', 'TantraRho', 'label', 'predicted_label'],axis=1)
     print(df.keys())
-    df1=weight_astro_spectrum(df)
-    listofdf0=[]
+    #df1=weight_astro_spectrum(df)
+    df1=new_weighter(df)
+    #listofdf0=[]
     #listofdf1=[]
-    ann_bin=np.linspace(0.1,0.9,9, endpoint=True)  #0.1 ,0.2 ,0.3 ,0.4 ,0.5 ,0.6 ,0.7 ,0.8 ,0.9
-    for ann_cut in ann_bin:
-        print("ann cut:",ann_cut)
-        df_0=df1[df1['cont_label_pred']<ann_cut] #-> 0 predicted
-        #df2=df1[df1['cont_label_pred']>ann_cut] #-> 1 predicted
-        listofdf0.append(ONandOFF(df_0))
-    result=pd.concat(listofdf0)
-    result.to_csv(r'MRF_2dim.csv',index=False,header=True)
+    #ann_bin=np.linspace(0.1,0.9,9, endpoint=True)  #0.1 ,0.2 ,0.3 ,0.4 ,0.5 ,0.6 ,0.7 ,0.8 ,0.9
+    ONandOFF(df1)
+    #for ann_cut in ann_bin:
+    #    print("ann cut:",ann_cut)
+    #    df_0=df1[df1['cont_label_pred']<ann_cut] #-> 0 predicted
+    #    #df2=df1[df1['cont_label_pred']>ann_cut] #-> 1 predicted
+    #    listofdf0.append(ONandOFF(df_0))
+    #result=pd.concat(listofdf0)
+    #result.to_csv(r'MRF_2dim.csv',index=False,header=True)
+    #

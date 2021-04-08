@@ -41,7 +41,7 @@ Index(['TantraLines', 'TantraHits', 'Trigger3N', 'TriggerT3', 'Nrun',
 def cut_dataframe_bdts(df):
     #bdt_cut=0.33
     bdt_cut=0.12
-    selectedDF=df[df['BDT__cuts_1e2'] > bdt_cut]
+    selectedDF=df[df['BDT__cuts_1e2'] < bdt_cut]
     return selectedDF
 
 def correlation_matrix(df):
@@ -53,13 +53,16 @@ def correlation_matrix(df):
     sn.heatmap(corrMatrix)
     plt.show()
 
-def column_selector(df,name):
+def column_selector(df1,name):
     #df1 = df[['TantraLines', 'TantraHits', 'Mestimator', 'TantraZenith',
     #          'TantraAzimuth', 'TantraAngularEstimator', 'TantraX', 'TantraY',
     #          'TantraZ','Lambda','Beta', 'TrackLength','TantraEnergy','TantraRho','IntegralCharge','MeanCharge', 'StdCharge',
     #          'TriggerCounter','GridQuality','AAZenith', 'AAAzimuth','Trigger3N', 'TriggerT3','NOnTime','MCE','MCZenith','MCAzimuth']]
     y=[]
     if 'numuCC' in name:
+        y=np.ones(len(df1['TantraLines']))
+
+    elif 'MUON' in name:
         y=np.ones(len(df1['TantraLines']))
 
     else:
@@ -157,31 +160,35 @@ def aa_3D_histogram(listofdf):
 #    ax1.set_xlabel('AA')
    
 if __name__ == "__main__":
-    filename=sys.argv[1].split(',')
+    filename=sys.argv[1]#.split(',')
+    appender=sys.argv[2]
     listofdataframe=[]
+    dfappend=reader(appender)
+    listofdataframe.append(dfappend)
+
     #datasetlength=400000
-    for counter,a in enumerate(filename):
-        print(a)
-        df=reader(a)
-        print("Before cut",len(df['TantraX']))
-        df1=cut_dataframe_bdts(df)
-        print("after cut",len(df1['TantraX']))
-        df2=column_selector(df1,a)
-        df3=type_appender(df2,a)
-        listofdataframe.append(df3)
-        #if 'numuCC' in a:
-        #listofdataframe.append(column_selector(df,a))
-        #df2=df1.sample(n = 1130000)
-        #aa_3D_histogram(df2)
-        #listofdataframe.append(column_selector(df2,a))
-        #plotter(df1,df2,a)
-        #else:
-            #listofdataframe.append(column_selector(df,a))
-            #df2=df1.sample(n = 380000)
-            #aa_3D_histogram(df2)
-            #listofdataframe.append(column_selector(df2,a))
-            #plotter(df1,df2,a)
-            #plotter(listofdataframe[counter])
+    #for counter,a in enumerate(filename):
+    #print(a)
+    dfa=reader(filename)
+    print("Before cut",len(dfa['TantraX']))
+    #df1=cut_dataframe_bdts(df)
+    #print("after cut",len(df1['TantraX']))
+    dfb=column_selector(dfa,filename)
+    dfc=type_appender(dfb,filename)
+    listofdataframe.append(dfc)
+    #if 'numuCC' in a:
+    #listofdataframe.append(column_selector(df,a))
+    #df2=df1.sample(n = 1130000)
+    #aa_3D_histogram(df2)
+    #listofdataframe.append(column_selector(df2,a))
+    #plotter(df1,df2,a)
+    #else:
+    #listofdataframe.append(column_selector(df,a))
+    #df2=df1.sample(n = 380000)
+    #aa_3D_histogram(df2)
+    #listofdataframe.append(column_selector(df2,a))
+    #plotter(df1,df2,a)
+    #plotter(listofdataframe[counter])
     #aa_3D_histogram(listofdataframe)
     result = pd.concat(listofdataframe)
     print(result.keys())
@@ -189,7 +196,7 @@ if __name__ == "__main__":
     print(np.unique(result['label']))
     #print(result)
     #print("Final dataset length",len(result['label']))
-    result.to_hdf('Remaining_dataset.h5', key='df', mode='w')
+    result.to_hdf('ALL_MUON_MC_NU_dataset_BDT_Less_0.12.h5', key='df', mode='w')
     #coordinate_plooter(df)
     #correlation_matrix(df)
 

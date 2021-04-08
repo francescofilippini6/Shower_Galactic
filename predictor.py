@@ -25,12 +25,12 @@ def reader(filename):
     df = pd.read_hdf(filename)
     return df
 
-def cut_dataframe_bdts(df):
-    #bdt_cut=0.33
-    print("Bdt cut")
-    bdt_cut=0.12
-    selectedDF=df[df['BDT__cuts_1e2'] > bdt_cut]
-    return selectedDF
+#def cut_dataframe_bdts(df):
+#    #bdt_cut=0.33
+#    print("Bdt cut")
+#    bdt_cut=0.12
+#    selectedDF=df[df['BDT__cuts_1e2'] > bdt_cut]
+#    return selectedDF
 
 
 def preprocessing(df1,df2):
@@ -94,9 +94,9 @@ if __name__ == "__main__":
     scaler_distro=sys.argv[2]
     df=reader(filename)
     df1=reader(scaler_distro)
-    if "MUON" in filename:
-        df=cut_dataframe_bdts(df)
-        print("MUON cut bdt")
+    #if "MUON" in filename:
+    #    df=cut_dataframe_bdts(df)
+    #    print("MUON cut bdt")
     print("dataframe cut", len(df['TriggerT3']))
     predicted_labels=model_predicter(preprocessing(df1,df))
     #predicted_label_distribution(df,predicted_labels)
@@ -110,13 +110,13 @@ if __name__ == "__main__":
     df['predicted_label']=predicted_labels
     #print("Classification",Counter(y_pr))
     print("storing result")
-    df.to_hdf('Continuos_neutrino_prediction.h5', key='df', mode='w')
+    df.to_hdf('MUONplusNU_bdt_less0.12.h5', key='df', mode='w')
 
     #store = pd.HDFStore('HDF5_store_predicted.h5')
     #store.append('df',df)
-    df_cm=confusion_matrix(np.ones(len(y_pr)),y_pr,sample_weight=df['WeightAtmo'])
+    df_cm=confusion_matrix(df['label'],y_pr,sample_weight=df['WeightAtmo'])
     ax = plt.axes()
-    ax.set_title(' sample')
+    ax.set_title('Confusion matrix')
     sns.heatmap(df_cm, annot=True,cmap=plt.cm.Blues, fmt='g',ax=ax)
     ax.set_ylabel('true')
     ax.set_xlabel('predicted')
