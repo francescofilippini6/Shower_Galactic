@@ -164,52 +164,59 @@ def plot_OFFZONE(df):
 def ONandOFF(df):
     offhisto,binning=plot_OFFZONE(df)
     onhisto,cosmic=plot_ONZONE(df,binning)
-    center = (binning[:-1] + binning[1:]) / 2
-    cumulativeon=[]
-    cumulativeoff=[]
-    cumulativecosmic=[]
-    for i in range(len(binning)-1):
-        cumulativeon.append(sum(onhisto[i:]))
-        cumulativeoff.append(sum(offhisto[i:]))
-        cumulativecosmic.append(sum(cosmic[i:]))
-
-    saver = pd.DataFrame({'OnEntries': onhisto,
-                          'OffEntries': offhisto,
-                          'center_bin' : center,
-                          'bin_edges': binning[1:]})
+    #center = (binning[:-1] + binning[1:]) / 2
+    #cumulativeon=[]
+    #cumulativeoff=[]
+    #cumulativecosmic=[]
+    #for i in range(len(binning)-1):
+    #    cumulativeon.append(sum(onhisto[i:]))
+    #    cumulativeoff.append(sum(offhisto[i:]))
+    #    cumulativecosmic.append(sum(cosmic[i:]))
+    #
+    #saver = pd.DataFrame({'OnEntries': onhisto,
+    #                      'OffEntries': offhisto,
+    #                      'center_bin' : center,
+    #                      'bin_edges': binning[1:]})
     
-    discrepancy=(np.absolute(onhisto-offhisto)/offhisto)*100
-    fig = plt.figure()
-    gs = fig.add_gridspec(nrows=4, ncols=2,  hspace=0)#gs=GridSpec(4,2)
-    ax=fig.add_subplot(gs[:-1,0])
-    ax=fig.add_subplot(121)
-    ax.plot(center,offhisto,'+r',label='offzone')
-    ax.plot(center,onhisto,'+b',label='onzone')
-    ax.plot(center,cosmic,'+g',label='onzone cosmic')
-    ax.set_xlabel('log10(E/GeV)')
-    ax.set_ylabel(r'$\frac{dN}{dE}$')
-    ax.set_yscale('log')
-    ax.legend()
-    ax1=fig.add_subplot(122)
-    ax1=fig.add_subplot(gs[:,1])
-    ax1.plot(center,cumulativeoff,'--r',label='offzone')
-    ax1.plot(center,cumulativeon,'--b',label='onzone')
-    ax1.plot(center,cumulativecosmic,'--g',label='onzone cosmic')
+    #saver.to_csv(r'ON_OFF_histo.csv',index=False,header=True)
     
-    ax1.set_xlabel('log10(E/GeV)')
-    ax1.set_title('Cumulative')
-    ax1.set_ylabel(r'$\frac{dN}{dE}$')
-    ax1.set_yscale('log')
-    ax1.legend()
-    ax2=fig.add_subplot(gs[-1:,0])
-    ax2.plot(center,discrepancy,'+k',label='onzone')
-    ax2.set_ylabel('|on-off|/off (%)')
-    ax2.set_xlabel('log10(E/GeV)')
-    ax2.set_yscale('log')
-    plt.show()
-    return (sum(offhisto),sum(onhisto))
+    #discrepancy=(np.absolute(onhisto-offhisto)/offhisto)*100
+    #fig = plt.figure()
+    #gs = fig.add_gridspec(nrows=4, ncols=2,  hspace=0)#gs=GridSpec(4,2)
+    #ax=fig.add_subplot(gs[:-1,0])
+    ##ax=fig.add_subplot(121)
+    #ax.plot(center,offhisto,'+r',label='offzone')
+    #ax.plot(center,onhisto,'+b',label='onzone')
+    #ax.plot(center,cosmic,'+g',label='onzone cosmic')
+    #ax.set_xlabel('log10(E/GeV)')
+    #ax.set_ylabel(r'$\frac{dN}{dE}$')
+    #ax.set_yscale('log')
+    #ax.legend()
+    ##ax1=fig.add_subplot(122)
+    #ax1=fig.add_subplot(gs[:,1])
+    #ax1.plot(center,cumulativeoff,'--r',label='offzone')
+    #ax1.plot(center,cumulativeon,'--b',label='onzone')
+    #ax1.plot(center,cumulativecosmic,'--g',label='onzone cosmic')
+    #
+    #ax1.set_xlabel('log10(E/GeV)')
+    #ax1.set_title('Cumulative')
+    #ax1.set_ylabel(r'$\frac{dN}{dE}$')
+    #ax1.set_yscale('log')
+    #ax1.legend()
+    ##ax2=fig.add_subplot(gs[-1:,0])
+    #ax2.plot(center,discrepancy,'+k',label='onzone')
+    #ax2.set_ylabel('|on-off|/off (%)')
+    #ax2.set_xlabel('log10(E/GeV)')
+    #ax2.set_yscale('log')
+    ##plt.show()
+    return (sum(offhisto),sum(onhisto),sum(cosmic))
     
-
+#def slicer(df,cut):
+#    ann_cut=cut
+#    print("Slicing dataframe at: ", ann_cut)
+#    selectedDF=df[df['cont_label_pred'] > ann_cut]
+#    return selectedD
+    
 if __name__ == "__main__":
     listofdataframe=[]
     #------------------------------------------------
@@ -234,8 +241,34 @@ if __name__ == "__main__":
     listofdataframe.append(df)
     listofdataframe.append(dfm)
     dff = pd.concat(listofdataframe,sort=False)
-    dfbdt=dff[dff['BDT__cuts_1e2']>0.33]
-    dfnn=dfbdt[dfbdt['predicted_label']<0.5]
     print(dff.keys())
-    print(ONandOFF(dfnn))
-    
+    #ONandOFF(dff)
+    listofdf0=[]
+    bdt_bin=np.linspace(-0.05,0.55,13,endpoint=True)
+    ann_bin=np.linspace(0.1,0.9,9, endpoint=True)  #0.1 ,0.2 ,0.3 ,0.4 ,0.5 ,0.6 ,0.7 ,0.8 ,0.9
+    listoflist=[]
+    for bdt_cut in bdt_bin:
+        dfbdt=dff[dff['BDT__cuts_1e2']>bdt_cut]
+        listsimpleoff=[]
+        listsimpleon=[]
+        listsimplecosmic=[]
+        for ann_cut in ann_bin:
+            print("ann cut:",ann_cut)
+            df_0=dfbdt[dfbdt['predicted_label']<ann_cut] #-> 0 predicted
+            offevts,onevts,cosmic=ONandOFF(df_0)
+            listsimpleoff.append(offevts)
+            listsimpleon.append(onevts)
+            listsimplecosmic.append(cosmic)
+        listoflist.append(listsimpleoff)
+        listoflist.append(listsimpleon)
+        listoflist.append(listsimplecosmic)
+    with open("cosmic_out.csv","w") as f:
+        wr = csv.writer(f)
+        wr.writerows(listoflist)
+    #saver = pd.DataFrame({'ann': ann_bin,
+    #                      'bdt_bin': bdt_bin,
+    #                      'bin_edges': binning[1:]})
+   
+    #result=pd.concat(listofdf0)
+    #result.to_csv(r'MRF_2dim.csv',index=False,header=True)
+    #
