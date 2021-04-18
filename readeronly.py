@@ -49,7 +49,22 @@ def SPEED2coordinateconverter(dfa,cc):
     gal=local_sky.galactic
     return (gal.l.deg,gal.b.deg)
 
-
+def trigger_counter_plot(df):
+    fig=plt.figure()
+    ax=fig.add_subplot(121)
+    ax.hist(df['TriggerCounter'],bins=50,histtype='step')
+    ax.set_title("Trigger counter distro")
+    ax.set_xlabel('TriggerCounter value')
+    ax.set_ylabel(r'entries')
+    ax.set_yscale('log')
+    ax1=fig.add_subplot(122)
+    ax1.plot(np.power(10,df['MCE']),df['TriggerCounter'],'+r')
+    ax1.set_title("Trigger counter vs MCE")
+    ax1.set_xlabel('MCE')
+    ax1.set_ylabel('Trigger Counter')
+    ax1.set_yscale('log')
+    plt.show()
+    return fig
 
 if __name__ == "__main__":
     filename=sys.argv[1]
@@ -63,9 +78,14 @@ if __name__ == "__main__":
     #        print(Counter(df['interaction_type']))
 
     print(df.keys())
-    #print(df)
+    
     print(Counter(df['label']))
-    print(Counter(df['interaction_type']))
+    #print(Counter(df['interaction_type']))
+    print('3N:',Counter(df['Trigger3N']))
+    print('T3:',Counter(df['TriggerT3']))
+    #print(Counter(df['TriggerCounter']))
+
+    #trigger_counter_plot(df)
 
     # #df=df.head(10)
     # print("usual conversion",SPEED2coordinateconverter(df,1))

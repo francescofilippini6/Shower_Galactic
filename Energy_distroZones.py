@@ -182,7 +182,6 @@ def ONandOFF(df):
     fig = plt.figure()
     gs = fig.add_gridspec(nrows=4, ncols=2,  hspace=0)#gs=GridSpec(4,2)
     ax=fig.add_subplot(gs[:-1,0])
-    ax=fig.add_subplot(121)
     ax.plot(center,offhisto,'+r',label='offzone')
     ax.plot(center,onhisto,'+b',label='onzone')
     ax.plot(center,cosmic,'+g',label='onzone cosmic')

@@ -54,19 +54,18 @@ def correlation_matrix(df):
     plt.show()
 
 def column_selector(df,name):
-    #df1 = df[['TantraLines', 'TantraHits', 'Mestimator', 'TantraZenith',
-    #          'TantraAzimuth', 'TantraAngularEstimator', 'TantraX', 'TantraY',
-    #          'TantraZ','Lambda','Beta', 'TrackLength','TantraEnergy','TantraRho','IntegralCharge','MeanCharge', 'StdCharge',
-    #          'TriggerCounter','GridQuality','AAZenith', 'AAAzimuth','Trigger3N', 'TriggerT3','NOnTime','MCE','MCZenith','MCAzimuth']]
+    dfaa = df[['TantraLines', 'TantraHits', 'Mestimator', 'TantraZenith',
+              'TantraAzimuth', 'TantraAngularEstimator', 'TantraX', 'TantraY',
+              'TantraZ','Lambda','Beta', 'TrackLength','TantraEnergy','TantraRho','IntegralCharge','MeanCharge', 'StdCharge',
+               'TriggerCounter','GridQuality','AAZenith', 'AAAzimuth','Trigger3N', 'TriggerT3','NOnTime','MCE','MCZenith','MCAzimuth','MCE','NEW_LIKELIHOOD_3D_ATMO']]
     y=[]
     if 'numuCC' in name:
-        y=np.ones(len(df1['TantraLines']))
+        y=np.ones(len(dfaa['TantraLines']))
 
     else:
-        y=np.zeros(len(df1['TantraLines']))
-        #y=[0]*len(df1['TantraLines'])
-    df1['label']=y
-    return df1
+        y=np.zeros(len(dfaa['TantraLines']))
+    dfaa['label']=y
+    return dfaa
 
 def type_appender(df,name):
     interaction_type=name.split('.')[0]
