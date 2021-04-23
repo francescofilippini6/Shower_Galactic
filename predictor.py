@@ -38,11 +38,11 @@ def preprocessing(df1,df2):
     aa = df1[['TantraLines', 'TantraHits', 'Mestimator', 'TantraZenith',
               'TantraAzimuth', 'TantraAngularEstimator', 'TantraX', 'TantraY',
               'TantraZ','Lambda','Beta', 'TrackLength','TantraEnergy','TantraRho','IntegralCharge','MeanCharge', 'StdCharge',
-              'TriggerCounter','GridQuality','AAZenith', 'AAAzimuth','Trigger3N', 'TriggerT3','NOnTime']]
+              'GridQuality','AAZenith', 'AAAzimuth','Trigger3N', 'TriggerT3','NOnTime','NEW_LIKELIHOOD_3D_ATMO']]
     features = df2[['TantraLines', 'TantraHits', 'Mestimator', 'TantraZenith',
               'TantraAzimuth', 'TantraAngularEstimator', 'TantraX', 'TantraY',
               'TantraZ','Lambda','Beta', 'TrackLength','TantraEnergy','TantraRho','IntegralCharge','MeanCharge', 'StdCharge',
-              'TriggerCounter','GridQuality','AAZenith', 'AAAzimuth','Trigger3N', 'TriggerT3','NOnTime']]
+                'GridQuality','AAZenith', 'AAAzimuth','Trigger3N', 'TriggerT3','NOnTime','NEW_LIKELIHOOD_3D_ATMO']]
     scaler = StandardScaler().fit(aa)
     #scaler = StandardScaler().fit(features)
     features = scaler.transform(features)
@@ -52,11 +52,11 @@ def preprocessing(df1,df2):
 
 def model_predicter(df):
     print("model loading...")
-    json_file = open('model.json', 'r')
+    json_file = open('modelNoTG.json', 'r')
     loaded_model_json = json_file.read()
     loaded_model = model_from_json(loaded_model_json)
     # load weights into new model
-    loaded_model.load_weights("best_model.hdf5")
+    loaded_model.load_weights("best_modelNoTG.hdf5")
     loaded_model.compile(optimizer='adam',loss='binary_crossentropy')
     print("model loaded")
     print("start prediction")
@@ -107,14 +107,14 @@ if __name__ == "__main__":
         else:
             y_pr.append(0)
      
-    df['predicted_label']=predicted_labels
+    df['predicted_label_No_TG']=predicted_labels
     #print("Classification",Counter(y_pr))
     print("storing result")
-    df.to_hdf('MUONplusNU_bdt_less0.12.h5', key='df', mode='w')
+    df.to_hdf('DATA_NewPrediction_NOTG_BDT0.12.h5', key='df', mode='w')
 
-    #store = pd.HDFStore('HDF5_store_predicted.h5')
-    #store.append('df',df)
     df_cm=confusion_matrix(df['label'],y_pr,sample_weight=df['WeightAtmo'])
+    #if predict muon then uncomment this line
+    #df_cm=confusion_matrix(np.ones(len(df['TriggerT3'])),y_pr,sample_weight=df['WeightAtmo'])
     ax = plt.axes()
     ax.set_title('Confusion matrix')
     sns.heatmap(df_cm, annot=True,cmap=plt.cm.Blues, fmt='g',ax=ax)

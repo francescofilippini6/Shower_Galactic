@@ -57,7 +57,7 @@ def column_selector(df,name):
     dfaa = df[['TantraLines', 'TantraHits', 'Mestimator', 'TantraZenith',
               'TantraAzimuth', 'TantraAngularEstimator', 'TantraX', 'TantraY',
               'TantraZ','Lambda','Beta', 'TrackLength','TantraEnergy','TantraRho','IntegralCharge','MeanCharge', 'StdCharge',
-               'TriggerCounter','GridQuality','AAZenith', 'AAAzimuth','Trigger3N', 'TriggerT3','NOnTime','MCE','MCZenith','MCAzimuth','MCE','NEW_LIKELIHOOD_3D_ATMO']]
+               'GridQuality','AAZenith', 'AAAzimuth','Trigger3N', 'TriggerT3','NOnTime','NEW_LIKELIHOOD_3D_ATMO','MCE']]
     y=[]
     if 'numuCC' in name:
         y=np.ones(len(dfaa['TantraLines']))
@@ -67,14 +67,14 @@ def column_selector(df,name):
     dfaa['label']=y
     return dfaa
 
-def type_appender(df,name):
+def type_appender(dfs,name):
     interaction_type=name.split('.')[0]
     print(interaction_type)
     y=[]
-    for a in range(len(df['TantraLines'])):
+    for na in range(len(dfs['TantraLines'])):
         y.append(interaction_type)
-    df['interaction_type']=y
-    return df
+    dfs['interaction_type']=y
+    return dfs
 
 def plotter(df1,df2,name):
     print("inside function")
@@ -163,32 +163,30 @@ if __name__ == "__main__":
         print(a)
         df=reader(a)
         print("Before cut",len(df['TantraX']))
-        df1=cut_dataframe_bdts(df)
-        print("after cut",len(df1['TantraX']))
-        df2=column_selector(df1,a)
-        df3=type_appender(df2,a)
-        listofdataframe.append(df3)
-        #if 'numuCC' in a:
-        #listofdataframe.append(column_selector(df,a))
-        #df2=df1.sample(n = 1130000)
-        #aa_3D_histogram(df2)
-        #listofdataframe.append(column_selector(df2,a))
-        #plotter(df1,df2,a)
-        #else:
-            #listofdataframe.append(column_selector(df,a))
-            #df2=df1.sample(n = 380000)
-            #aa_3D_histogram(df2)
-            #listofdataframe.append(column_selector(df2,a))
-            #plotter(df1,df2,a)
-            #plotter(listofdataframe[counter])
+        #df1=cut_dataframe_bdts(df)
+        #print("after cut",len(df1['TantraX']))
+        #df2=column_selector(df,a)
+        df1=type_appender(df,a)
+        #listofdataframe.append(df3)
+        if 'numuCC' in a:
+            #for the BDT cut at 0.12 -> 1130000
+            #for no BDT cut -> 1600000
+            df2=df1.sample(n = 1600000)
+            listofdataframe.append(column_selector(df2,a))
+        else:
+            #for the BDT cut at 0.12 -> 380000
+            #for no BDT cut -> 400000
+            df2=df1.sample(n = 400000)
+            listofdataframe.append(column_selector(df2,a))
+                    
     #aa_3D_histogram(listofdataframe)
     result = pd.concat(listofdataframe)
     print(result.keys())
-    print(np.unique(result['interaction_type']))
-    print(np.unique(result['label']))
+    #print(np.unique(result['interaction_type']))
+    #print(np.unique(result['label']))
     #print(result)
     #print("Final dataset length",len(result['label']))
-    result.to_hdf('Remaining_dataset.h5', key='df', mode='w')
+    result.to_hdf('MAX_Training_dataset.h5', key='df', mode='w')
     #coordinate_plooter(df)
     #correlation_matrix(df)
 

@@ -27,9 +27,12 @@ def reader(filename):
 
 def plotter(dfdata,dfmc,key):
     print(key)
-    mchist, bins = np.histogram(dfmc[key],weights=np.array(dfmc['WeightAtmo']))
-    datahist, _ = np.histogram(dfdata[key],bins=bins,weights=np.array([10]*len(dfdata[key])))
-    center = (bins[:-1] + bins[1:]) / 2
+    #bins=0
+    datahist, bins = np.histogram(dfdata[key],bins=40,weights=np.array([10]*len(dfdata[key])))
+    mchist, _ = np.histogram(dfmc[key],bins=bins,weights=np.array(dfmc['WeightAtmo']))
+    print(bins)
+    print(mchist)
+    #center = (bins[:-1] + bins[1:]) / 2
     discrepancy=(np.absolute(mchist-datahist)/mchist)*100
     #discrepancy=[]
     #for u in mchist:
@@ -43,9 +46,14 @@ def plotter(dfdata,dfmc,key):
     ax=fig.add_subplot(gs[:-1,0])
     #ax=fig.add_subplot(111)
     ax.set_title(key)
-    ax.plot(center,mchist,'+r',label='MC')
-    ax.plot(center,datahist,'+b',label='DATA')
+    hh , hbin , aaa = ax.hist(bins[:-1], bins, weights=mchist,histtype='step',label='MC')
+    ax.hist(bins[:-1], bins, weights=datahist,histtype='step',label='DATA')
     ax.legend()
+    ax.set_yscale('log')
+    center = (hbin[:-1] + hbin[1:]) / 2
+    # ax.plot(center,mchist,'+r',label='MC')
+    #ax.plot(center,datahist,'+b',label='DATA')
+    print(center)
     ax2=fig.add_subplot(gs[-1:,0])
     ax2.plot(center,discrepancy,'+k')
     ax2.set_ylabel('|mc-data|/mc (%)')
@@ -69,7 +77,8 @@ if __name__ == "__main__":
     dfmc = pd.concat(listdf,sort=False)
     dfdata=dfdata[dfdata['BDT__cuts_1e2']>0.12]
     
-    listofkey=['TantraLines', 'TantraHits', 'Mestimator', 'TantraZenith','TantraAzimuth', 'TantraAngularEstimator', 'TantraX', 'TantraY','TantraZ', 'Lambda','Beta', 'TrackLength','TantraEnergy','TantraRho','TriggerCounter','NOnTime','AAZenith', 'AAAzimuth','GridQuality','Trigger3N', 'TriggerT3']
-    key1=['NEW_LIKELIHOOD_3D_ATMO','IntegralCharge','MeanCharge', 'StdCharge']
+    listofkey=['TantraLines', 'TantraHits', 'Mestimator', 'TantraZenith','TantraAzimuth', 'TantraAngularEstimator', 'TantraX', 'TantraY','TantraZ', 'Lambda','Beta', 'TrackLength','TantraEnergy','TantraRho','TriggerCounter','NOnTime','AAZenith', 'AAAzimuth','GridQuality','Trigger3N', 'TriggerT3','NEW_LIKELIHOOD_3D_ATMO','IntegralCharge','MeanCharge', 'StdCharge']
+    key1=['predicted_label_No_TG']
+    key1=['predicted_label']
     for keyy in key1:
         plotter(dfdata,dfmc,keyy)

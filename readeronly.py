@@ -79,8 +79,8 @@ if __name__ == "__main__":
 
     print(df.keys())
     
-    print(Counter(df['label']))
-    #print(Counter(df['interaction_type']))
+    #print(Counter(df['label']))
+    #print(Counter(df['WeightAtmo']))
     print('3N:',Counter(df['Trigger3N']))
     print('T3:',Counter(df['TriggerT3']))
     #print(Counter(df['TriggerCounter']))
