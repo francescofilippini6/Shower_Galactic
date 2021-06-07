@@ -223,17 +223,17 @@ if __name__ == "__main__":
     filename=sys.argv[1]
     df=reader(filename)
     #df=df.head(10)
-    df1=df.drop(['predicted_label'],axis=1)
-    labels=np.array(df1['cont_label_pred'])
-    df1=df1.drop(['cont_label_pred'],axis=1)
-    df1['predicted_label']=labels
+    #df1=df.drop(['predicted_label'],axis=1)
+    #labels=np.array(df1['cont_label_pred'])
+    #df1=df1.drop(['cont_label_pred'],axis=1)
+    #df1['predicted_label']=labels
     df=df.drop(['Mestimator', 'TantraZenith', 'TantraAzimuth', 'Lambda', 'Beta', 'RunDurationYear', 'MCX', 'MCY', 'MCZ', 'MCRho', 'w3','MCRa', 'MCDec', 'BDT_default', 'TantraRho', 'label'],axis=1)
     
     #print(df.keys())
     muon=sys.argv[2]
     dfm=reader(muon)
     #dfm=dfm.head(10)
-    dfm=dfm.drop(['Mestimator', 'TantraZenith', 'TantraAzimuth', 'Lambda', 'Beta', 'RunDurationYear', 'MCX', 'MCY', 'MCZ', 'MCRho', 'w3','MCRa', 'MCDec', 'BDT_default', 'TantraRho', 'label'],axis=1)
+    dfm=dfm.drop(['Mestimator', 'TantraZenith', 'TantraAzimuth', 'Lambda', 'Beta', 'RunDurationYear', 'MCX', 'MCY', 'MCZ', 'MCRho', 'w3','MCRa', 'MCDec', 'BDT_default', 'TantraRho', 'label','predicted_label'],axis=1)
     
     #df1=weight_astro_spectrum(df)
     df=new_weighter(df)
@@ -244,7 +244,7 @@ if __name__ == "__main__":
     print(dff.keys())
     #ONandOFF(dff)
     listofdf0=[]
-    bdt_bin=np.linspace(-0.05,0.55,13,endpoint=True)
+    bdt_bin=np.linspace(-0.05,0.55,13,endpoint=True)   # step 0.05
     ann_bin=np.linspace(0.1,0.9,9, endpoint=True)  #0.1 ,0.2 ,0.3 ,0.4 ,0.5 ,0.6 ,0.7 ,0.8 ,0.9
     listoflist=[]
     for bdt_cut in bdt_bin:
@@ -254,7 +254,7 @@ if __name__ == "__main__":
         listsimplecosmic=[]
         for ann_cut in ann_bin:
             print("ann cut:",ann_cut)
-            df_0=dfbdt[dfbdt['predicted_label']<ann_cut] #-> 0 predicted
+            df_0=dfbdt[dfbdt['predicted_dropout']<ann_cut] #-> 0 predicted
             offevts,onevts,cosmic=ONandOFF(df_0)
             listsimpleoff.append(offevts)
             listsimpleon.append(onevts)

@@ -215,10 +215,10 @@ if __name__ == "__main__":
     filename=sys.argv[1]
     df=reader(filename)
     #df=df.head(10)
-    df1=df.drop(['predicted_label'],axis=1)
-    labels=np.array(df1['cont_label_pred'])
-    df1=df1.drop(['cont_label_pred'],axis=1)
-    df1['predicted_label']=labels
+    #df1=df.drop(['predicted_label'],axis=1)
+    #labels=np.array(df1['cont_label_pred'])
+    #df1=df1.drop(['cont_label_pred'],axis=1)
+    #df1['predicted_label']=labels
     df=df.drop(['Mestimator', 'TantraZenith', 'TantraAzimuth', 'Lambda', 'Beta', 'RunDurationYear', 'MCX', 'MCY', 'MCZ', 'MCRho', 'w3','MCRa', 'MCDec', 'BDT_default', 'TantraRho', 'label'],axis=1)
     
     #print(df.keys())
@@ -234,7 +234,7 @@ if __name__ == "__main__":
     listofdataframe.append(dfm)
     dff = pd.concat(listofdataframe,sort=False)
     dfbdt=dff[dff['BDT__cuts_1e2']>0.33]
-    dfnn=dfbdt[dfbdt['predicted_label']<0.5]
+    dfnn=dfbdt[dfbdt['predicted_dropout']<0.5]
     print(dff.keys())
     print(ONandOFF(dfnn))
     

@@ -52,11 +52,11 @@ def preprocessing(df1,df2):
 
 def model_predicter(df):
     print("model loading...")
-    json_file = open('modelNoTG.json', 'r')
+    json_file = open("model_100_dropout.json", 'r')
     loaded_model_json = json_file.read()
     loaded_model = model_from_json(loaded_model_json)
     # load weights into new model
-    loaded_model.load_weights("best_modelNoTG.hdf5")
+    loaded_model.load_weights("best_model_100_dropout.hdf5")
     loaded_model.compile(optimizer='adam',loss='binary_crossentropy')
     print("model loaded")
     print("start prediction")
@@ -97,24 +97,22 @@ if __name__ == "__main__":
     #if "MUON" in filename:
     #    df=cut_dataframe_bdts(df)
     #    print("MUON cut bdt")
-    print("dataframe cut", len(df['TriggerT3']))
+    print("dataframe length", len(df['TriggerT3']))
     predicted_labels=model_predicter(preprocessing(df1,df))
     #predicted_label_distribution(df,predicted_labels)
+
+    df['predicted_dropout']=predicted_labels
+    #df['label']=np.ones(len(df['TriggerT3']))
+    print("storing result")
+    df.to_hdf('NewPrediction_NOTG_BDT_more_0.12.h5', key='df', mode='w')
     y_pr=[]
     for a in predicted_labels:
         if a > 0.5:
             y_pr.append(1)
         else:
             y_pr.append(0)
-     
-    df['predicted_label_No_TG']=predicted_labels
-    #print("Classification",Counter(y_pr))
-    print("storing result")
-    df.to_hdf('DATA_NewPrediction_NOTG_BDT0.12.h5', key='df', mode='w')
-
+    
     df_cm=confusion_matrix(df['label'],y_pr,sample_weight=df['WeightAtmo'])
-    #if predict muon then uncomment this line
-    #df_cm=confusion_matrix(np.ones(len(df['TriggerT3'])),y_pr,sample_weight=df['WeightAtmo'])
     ax = plt.axes()
     ax.set_title('Confusion matrix')
     sns.heatmap(df_cm, annot=True,cmap=plt.cm.Blues, fmt='g',ax=ax)

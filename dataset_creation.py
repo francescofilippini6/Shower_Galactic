@@ -166,17 +166,18 @@ if __name__ == "__main__":
         #df1=cut_dataframe_bdts(df)
         #print("after cut",len(df1['TantraX']))
         #df2=column_selector(df,a)
+        df1=cut_dataframe_bdts(df)
         df1=type_appender(df,a)
         #listofdataframe.append(df3)
         if 'numuCC' in a:
             #for the BDT cut at 0.12 -> 1130000
             #for no BDT cut -> 1600000
-            df2=df1.sample(n = 1600000)
+            df2=df1.sample(n = 1130000)
             listofdataframe.append(column_selector(df2,a))
         else:
             #for the BDT cut at 0.12 -> 380000
             #for no BDT cut -> 400000
-            df2=df1.sample(n = 400000)
+            df2=df1.sample(n = 380000)
             listofdataframe.append(column_selector(df2,a))
                     
     #aa_3D_histogram(listofdataframe)
@@ -186,7 +187,7 @@ if __name__ == "__main__":
     #print(np.unique(result['label']))
     #print(result)
     #print("Final dataset length",len(result['label']))
-    result.to_hdf('MAX_Training_dataset.h5', key='df', mode='w')
+    result.to_hdf('Training_BDT0.12_dataset.h5', key='df', mode='w')
     #coordinate_plooter(df)
     #correlation_matrix(df)
 

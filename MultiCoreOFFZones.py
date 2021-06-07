@@ -40,7 +40,8 @@ def SPEED2coordinateconverter(dfa,cc):
         evt_time=Timemjd+shift
         obstime = Time(evt_time,format='mjd')
         frame_hor = AltAz(obstime=obstime, location=locationAntares)
-        local_sky=SkyCoord(azi,alt,frame=frame_hor, unit=u.rad)
+        #look at the order of insertion azi e alt
+        local_sky=SkyCoord(az=azi,alt=alt,frame=frame_hor, unit=u.rad)
         print("Now local to galactic")
         gal=local_sky.galactic
         dfa['gal_l'+str(i)]=gal.l.deg
