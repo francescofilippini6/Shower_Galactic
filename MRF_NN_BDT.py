@@ -47,13 +47,13 @@ def mrf_2dimension(bkg,sign):
     
 if __name__ == "__main__":
     #df=pd.read_csv('ON_OFF_histo.csv')
-    df=pd.read_csv('cosmic_out.csv')
+    df=pd.read_csv('cosmic_out_More_binning.csv')
     print(df)
     listofdf=[]
     #----------------------------------------------
     # initializing the 2d istogram with random values
     #----------------------------------------------
-    yedges = np.linspace(0.05,0.95,10, endpoint=True)
+    yedges = np.linspace(0.025,0.925,19, endpoint=True)
     xedges= np.linspace(-0.075,0.575,14, endpoint=True)#-0.35,12
     x = np.random.normal(0.5, 0.3, 100)
     y = np.random.normal(1, 3, 100)

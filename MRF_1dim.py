@@ -42,20 +42,20 @@ def mrfplotter(df):
 
 if __name__ == "__main__":
     #df=pd.read_csv('ON_OFF_histo.csv')
-    df=pd.read_csv('MRF_ON_OFF_histo.csv')
-    #    print(df)
-    #    MRF=[]
-    #    for a in range(len(df['OnEntries'])):
-    #        if df['OffEntries'][a]==0:
-    #            MRF.append(0)
-    #        elif df['OnEntries'][a]==0:
-    #            MRF.append(0)
-    #        else:
-    #            print(df['OffEntries'][a])
-    #            fcul=ROOT.MeanUL(df['OffEntries'][a])
-    #            ns=df['OnEntries'][a]
-    #            MRF.append(fcul/ns)
-    #    print(MRF)
-    #    df['mrf']=MRF
+    df=pd.read_csv('Energy_Mrf.csv')
+    print(df)
+    MRF=[]
+    for a in range(len(df['OnEntries'])):
+        if df['OffEntries'][a]==0:
+            MRF.append(0)
+        elif df['OnEntries'][a]==0:
+            MRF.append(0)
+        else:
+            print(df['OffEntries'][a])
+            fcul=ROOT.MeanUL(df['OffEntries'][a])
+            ns=df['cosmic'][a]
+            MRF.append(fcul/ns)
+            print(MRF)
+    df['mrf']=MRF
     #    df.to_csv(r'MRF_ON_OFF_histo.csv',index=False,header=True)
     mrfplotter(df)

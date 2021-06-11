@@ -245,7 +245,7 @@ if __name__ == "__main__":
     #ONandOFF(dff)
     listofdf0=[]
     bdt_bin=np.linspace(-0.05,0.55,13,endpoint=True)   # step 0.05
-    ann_bin=np.linspace(0.1,0.9,9, endpoint=True)  #0.1 ,0.2 ,0.3 ,0.4 ,0.5 ,0.6 ,0.7 ,0.8 ,0.9
+    ann_bin=np.linspace(0.05,0.9,18, endpoint=True)  # 0.1 ,0.2 ,0.3 ,0.4 ,0.5 ,0.6 ,0.7 ,0.8 ,0.9
     listoflist=[]
     for bdt_cut in bdt_bin:
         dfbdt=dff[dff['BDT__cuts_1e2']>bdt_cut]
@@ -262,7 +262,7 @@ if __name__ == "__main__":
         listoflist.append(listsimpleoff)
         listoflist.append(listsimpleon)
         listoflist.append(listsimplecosmic)
-    with open("cosmic_out.csv","w") as f:
+    with open("cosmic_out_More_binning.csv","w") as f:
         wr = csv.writer(f)
         wr.writerows(listoflist)
     #saver = pd.DataFrame({'ann': ann_bin,

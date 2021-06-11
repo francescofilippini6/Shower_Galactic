@@ -19,6 +19,8 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import axes3d
 from matplotlib import cm
 from collections import Counter
+from scipy import special
+from scipy.stats import poisson
 
 def reader(filename):
     df = pd.read_hdf(filename)
@@ -121,7 +123,7 @@ def plot_ONZONE(df,bins):
     df=zonesSelection(df,'gal_b','gal_l')
     print("ON histo")
     hist0, _ = np.histogram(df['TantraEnergy'], bins=bins,weights=np.array(df['WeightAtmo']))
-    print("OFF events:", sum(hist0))
+    #print("OFF events:", sum(hist0))
     #--------------------------------------------------
     #  also MC zenith and azimuth must be in the ON region
     #--------------------------------------------------
@@ -131,7 +133,9 @@ def plot_ONZONE(df,bins):
     hist1, _ = np.histogram(df['TantraEnergy'], bins=bins,weights=np.array(df['new_w3']))    
     
     print("Cosmic signal events:", sum(hist1))
+    print("ON events atm:", sum(hist0))
     histsumON=hist0+hist1
+    print("ON events tot:", sum(histsumON))
     return (histsumON,hist1)
 
 
@@ -159,6 +163,7 @@ def plot_OFFZONE(df):
     hist8, _ = np.histogram(df8['TantraEnergy'], bins=bins,weights=np.array(df8['WeightAtmo']))
     
     histsum=(hist0+hist1+hist2+hist3+hist4+hist5+hist6+hist7+hist8)/9
+    print("mean OFF events:",sum(histsum))
     return (histsum,bins)
 
 def ONandOFF(df):
@@ -175,10 +180,29 @@ def ONandOFF(df):
 
     saver = pd.DataFrame({'OnEntries': onhisto,
                           'OffEntries': offhisto,
+                          'cosmic' : cosmic,
                           'center_bin' : center,
                           'bin_edges': binning[1:]})
     
-    discrepancy=(np.absolute(onhisto-offhisto)/offhisto)*100
+    #saver.to_csv('Energy_Mrf.csv')
+    #------------------------------------------------------
+    # relative discrepancy 
+    #------------------------------------------------------
+    #discrepancy=(np.absolute(onhisto-offhisto)/offhisto)*100
+
+    #------------------------------------------------------
+    # ratio discrepancy 
+    #------------------------------------------------------
+    #discrepancy=onhisto/offhisto
+    #------------------------------------------------------
+    # sigma discrepancy 
+    #------------------------------------------------------
+    #poissonprob=poisson.ppf(0.01, mu)
+    #discrepancy=special.erfinv(poissonprob)
+    disc_pois=np.absolute(onhisto-offhisto)/np.sqrt(offhisto+onhisto)
+    value=np.absolute(onhisto-offhisto)+disc_pois
+    poissonprob=poisson.ppf(value, np.absolute(onhisto-offhisto))
+    discrepancy=special.erfinv(poissonprob)
     fig = plt.figure()
     gs = fig.add_gridspec(nrows=4, ncols=2,  hspace=0)#gs=GridSpec(4,2)
     ax=fig.add_subplot(gs[:-1,0])
@@ -200,13 +224,16 @@ def ONandOFF(df):
     ax1.set_ylabel(r'$\frac{dN}{dE}$')
     ax1.set_yscale('log')
     ax1.legend()
+    x=np.arange(min(binning),max(binning),1)
     ax2=fig.add_subplot(gs[-1:,0])
+    ax2.fill_between(x, -1, 1,color='green', alpha=0.5)
     ax2.plot(center,discrepancy,'+k',label='onzone')
-    ax2.set_ylabel('|on-off|/off (%)')
+    
+    #ax2.set_ylabel('|on-off|/off (%)')
     ax2.set_xlabel('log10(E/GeV)')
     ax2.set_yscale('log')
     plt.show()
-    return (sum(offhisto),sum(onhisto))
+    return (offhisto,onhisto,cosmic)
     
 
 if __name__ == "__main__":
@@ -233,8 +260,11 @@ if __name__ == "__main__":
     listofdataframe.append(df)
     listofdataframe.append(dfm)
     dff = pd.concat(listofdataframe,sort=False)
-    dfbdt=dff[dff['BDT__cuts_1e2']>0.33]
-    dfnn=dfbdt[dfbdt['predicted_dropout']<0.5]
+    dfbdt=dff[dff['BDT__cuts_1e2']>0.15]
+    dfnn=dfbdt[dfbdt['predicted_dropout']<0.3]
     print(dff.keys())
-    print(ONandOFF(dfnn))
+    OFF,ON,cosmic=ONandOFF(dfnn)
     
+
+
+
