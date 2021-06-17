@@ -21,6 +21,7 @@ from matplotlib import cm
 from collections import Counter
 from scipy import special
 from scipy.stats import poisson
+import scipy.stats as st
 
 def reader(filename):
     df = pd.read_hdf(filename)
@@ -164,6 +165,7 @@ def plot_OFFZONE(df):
     
     histsum=(hist0+hist1+hist2+hist3+hist4+hist5+hist6+hist7+hist8)/9
     print("mean OFF events:",sum(histsum))
+    print(bins)
     return (histsum,bins)
 
 def ONandOFF(df):
@@ -197,12 +199,19 @@ def ONandOFF(df):
     #------------------------------------------------------
     # sigma discrepancy 
     #------------------------------------------------------
-    #poissonprob=poisson.ppf(0.01, mu)
-    #discrepancy=special.erfinv(poissonprob)
-    disc_pois=np.absolute(onhisto-offhisto)/np.sqrt(offhisto+onhisto)
-    value=np.absolute(onhisto-offhisto)+disc_pois
-    poissonprob=poisson.ppf(value, np.absolute(onhisto-offhisto))
-    discrepancy=special.erfinv(poissonprob)
+    #poissonprob=poisson.ppf(,)
+    discrepancy=[]
+    for binc in range(len(onhisto)):
+        tailpos=poisson.cdf(onhisto[binc],offhisto[binc]) #cdf=cumulative distribution function
+        pvalue=1-tailpos
+        discrepancy.append(st.norm.ppf(1-pvalue))
+        
+        #        for obs in range(onhisto[binning]):
+        #            cumulative+=poisson.pmf(offhisto[binning], onhisto[obs])
+        #            print(cumulative)
+        #        discrepancy.append(cumulative)
+        #    print(len(discrepancy))
+    print(discrepancy,len(discrepancy))    
     fig = plt.figure()
     gs = fig.add_gridspec(nrows=4, ncols=2,  hspace=0)#gs=GridSpec(4,2)
     ax=fig.add_subplot(gs[:-1,0])
@@ -224,12 +233,18 @@ def ONandOFF(df):
     ax1.set_ylabel(r'$\frac{dN}{dE}$')
     ax1.set_yscale('log')
     ax1.legend()
-    x=np.arange(min(binning),max(binning),1)
+    #x=np.arange(min(binning),max(binning),1000)
     ax2=fig.add_subplot(gs[-1:,0])
-    ax2.fill_between(x, -1, 1,color='green', alpha=0.5)
-    ax2.plot(center,discrepancy,'+k',label='onzone')
+    #ax2.fill_between(x, 0, 2,color='green', alpha=0.5)
+    #ax2.fill_between(x, 2, 3,color='yellow', alpha=0.5)
+    #ax2.fill_between(x, 3, 10,color='red', alpha=0.5)
+    ax2.axhline(y=2, color='g', linestyle='-',label=r'2 $\sigma$')
+    ax2.axhline(y=3, color='r', linestyle='-',label=r'3 $\sigma$')
+    ax2.axhline(y=5, color='b', linestyle='-',label=r'5 $\sigma$')
+    ax2.legend()
+    ax2.plot(center,discrepancy,'+k')
     
-    #ax2.set_ylabel('|on-off|/off (%)')
+    ax2.set_ylabel(r'$\sigma$')
     ax2.set_xlabel('log10(E/GeV)')
     ax2.set_yscale('log')
     plt.show()

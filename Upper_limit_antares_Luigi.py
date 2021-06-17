@@ -41,10 +41,18 @@ Index(['TantraLines', 'TantraHits', 'Trigger3N', 'TriggerT3', 'Nrun',
        'MeanCharge', 'StdCharge', 'BDT_default', 'BDT__cuts_1e2', 'TantraRho'],
       dtype='object')
 """
-
-
-if __name__ == "__main__":
+x=np.linspace(10**4,10**6,100) 
+def limit_creation(E,norm,index):
+    y=np.array(a*E**(-index+2))
+    return y
     
-
-
-
+if __name__ == "__main__":
+    index_vector=np.array([2.0,2.2,2.4,2.5,2.7])
+    norm_vector=np.array([2.4,2.3,2.0,1.9,1.8])#**10^-17 @ 100 TeV
+    fig=plt.figure()
+    ax=fig.add_subplot(111)
+    for a in range(len(index_vector)):
+        ax.plot(x,limit_creation(x,norm_vector[a]*10**-17,index_vector[a]))
+        ax.set_yscale('log')
+        ax.set_xscale('log')
+    plt.show()
