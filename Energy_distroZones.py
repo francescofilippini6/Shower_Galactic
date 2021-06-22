@@ -199,18 +199,23 @@ def ONandOFF(df):
     #------------------------------------------------------
     # sigma discrepancy 
     #------------------------------------------------------
-    #poissonprob=poisson.ppf(,)
+
     discrepancy=[]
     for binc in range(len(onhisto)):
         tailpos=poisson.cdf(onhisto[binc],offhisto[binc]) #cdf=cumulative distribution function
         pvalue=1-tailpos
         discrepancy.append(st.norm.ppf(1-pvalue))
-        
-        #        for obs in range(onhisto[binning]):
-        #            cumulative+=poisson.pmf(offhisto[binning], onhisto[obs])
-        #            print(cumulative)
-        #        discrepancy.append(cumulative)
-        #    print(len(discrepancy))
+
+    discrepancy1=[]
+    for bind in range(len(onhisto)):
+        LieMa=np.sqrt(2)*np.sqrt(onhisto[bind]*np.log(2*onhisto[bind]/(onhisto[bind]+offhisto[bind]))+offhisto[bind]*np.log(2*offhisto[bind]/(onhisto[bind]+offhisto[bind])))
+        discrepancy1.append(LieMa)
+
+    #discrepancy2=[]
+    #for bine in range(len(onhisto)):
+    #    poissonsigma=np.sqrt(2*(onhisto[bine]*np.log(onhisto[bine]/offhisto[bine])-2*onhisto[bine]*(onhisto[bine]-offhisto[bine])))
+    #    discrepancy2.append(poissonsigma)
+    #
     print(discrepancy,len(discrepancy))    
     fig = plt.figure()
     gs = fig.add_gridspec(nrows=4, ncols=2,  hspace=0)#gs=GridSpec(4,2)
@@ -218,6 +223,7 @@ def ONandOFF(df):
     ax.plot(center,offhisto,'+r',label='offzone')
     ax.plot(center,onhisto,'+b',label='onzone')
     ax.plot(center,cosmic,'+g',label='onzone cosmic')
+    ax.axvline(x=3.748,color='k',linestyle='--')
     ax.set_xlabel('log10(E/GeV)')
     ax.set_ylabel(r'$\frac{dN}{dE}$')
     ax.set_yscale('log')
@@ -243,6 +249,8 @@ def ONandOFF(df):
     ax2.axhline(y=5, color='b', linestyle='-',label=r'5 $\sigma$')
     ax2.legend()
     ax2.plot(center,discrepancy,'+k')
+    ax2.plot(center,discrepancy1,'xb')
+    #ax2.plot(center,discrepancy2,'.r')
     
     ax2.set_ylabel(r'$\sigma$')
     ax2.set_xlabel('log10(E/GeV)')
@@ -275,8 +283,8 @@ if __name__ == "__main__":
     listofdataframe.append(df)
     listofdataframe.append(dfm)
     dff = pd.concat(listofdataframe,sort=False)
-    dfbdt=dff[dff['BDT__cuts_1e2']>0.15]
-    dfnn=dfbdt[dfbdt['predicted_dropout']<0.3]
+    dfbdt=dff[dff['BDT__cuts_1e2']>0.10]
+    dfnn=dfbdt[dfbdt['predicted_dropout']<0.9]
     print(dff.keys())
     OFF,ON,cosmic=ONandOFF(dfnn)
     

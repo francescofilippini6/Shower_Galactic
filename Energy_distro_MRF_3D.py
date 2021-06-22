@@ -188,24 +188,27 @@ if __name__ == "__main__":
     #listofdf0=[]
     bdt_bin=np.linspace(-0.05,0.55,13,endpoint=True)   # step 0.05
     ann_bin=np.linspace(0.05,0.9,18, endpoint=True)   
-    energy_bin=np.linspace(0.76,9.06,50,endpoint=True)
+    energy_bin=np.linspace(0.76,9.06,51,endpoint=True)
     fin_table = pd.DataFrame(index = ['-0.05 ','0.0 ','0.05 ','0.10','0.15 ','0.20 ','0.25 ','0.3' ,'0.35 ','0.4 ','0.45','0.5 ','0.55 ']
                              ,columns = ['0.05 ','0.10 ','0.15 ','0.20 ','0.25 ','0.3' ,'0.35 ','0.4 ','0.45','0.5 ','0.55 ','0.6' ,'0.65 ','0.7', '0.75 ','0.8' ,'0.85 ','0.9'])
     print(fin_table)
     for row,bdt_cut in enumerate(bdt_bin):
         dfbdt=dff[dff['BDT__cuts_1e2']>bdt_cut]
-        listoflist=[]
         for column,ann_cut in enumerate(ann_bin):
+            listoflist=[]
             print("ann cut:",ann_cut)
             df_0=dfbdt[dfbdt['predicted_dropout']<ann_cut] #-> 0 predicted
             offevts,onevts,cosmic=ONandOFF(df_0,energy_bin)
-            print(offevts)
-            listoflist.append(offevts)
-            listoflist.append(onevts)
-            listoflist.append(cosmic)
+            print('OFF',offevts)
+            print('on',onevts)
+            print('cosmic',cosmic)
+            listoflist.append(list(offevts))
+            listoflist.append(list(onevts))
+            listoflist.append(list(cosmic))
+            print('listoflist',listoflist)
             fin_table.iloc[row,column]=listoflist
             
-    print(fin_table)
+    print(fin_table.iloc[1,1])
     print("saving file")
     fin_table.to_hdf('MRF_3D.h5', key='df', mode='w')
     

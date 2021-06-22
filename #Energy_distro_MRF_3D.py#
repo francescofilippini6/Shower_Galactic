@@ -1,0 +1,11 @@
+            listoflist.append(pd.Series(offevts))
+            listoflist.append(pd.Series(onevts))
+            listoflist.append(pd.Series(cosmic))
+            print('listoflist',listoflist)
+            fin_table.iloc[row,column]=listoflist
+            
+    print(fin_table.iloc[1,1])
+    print("saving file")
+    fin_table.to_hdf('MRF_3D.h5', key='df', mode='w')
+    
+   
