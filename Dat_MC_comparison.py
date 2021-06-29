@@ -75,10 +75,11 @@ if __name__ == "__main__":
     listdf.append(dfMonC)
     listdf.append(dfmuon)
     dfmc = pd.concat(listdf,sort=False)
-    dfdata=dfdata[dfdata['BDT__cuts_1e2']>0.12]
+    dfdata=dfdata[dfdata['BDT__cuts_1e2']>0.10]
+    dfmc=dfmc[dfmc['BDT__cuts_1e2']>0.10]
     
     listofkey=['TantraLines', 'TantraHits', 'Mestimator', 'TantraZenith','TantraAzimuth', 'TantraAngularEstimator', 'TantraX', 'TantraY','TantraZ', 'Lambda','Beta', 'TrackLength','TantraEnergy','TantraRho','TriggerCounter','NOnTime','AAZenith', 'AAAzimuth','GridQuality','Trigger3N', 'TriggerT3','NEW_LIKELIHOOD_3D_ATMO','IntegralCharge','MeanCharge', 'StdCharge']
-    key1=['predicted_label_No_TG']
-    key1=['predicted_label']
+    key1=['predicted_dropout']
+    #key1=['predicted_label']
     for keyy in key1:
         plotter(dfdata,dfmc,keyy)

@@ -58,7 +58,7 @@ gal=c.galactic
 gal_l_bkg_only=[]
 gal_b_bkg_only=[]
 signal_l=[]
-signal_b=[]
+lsignal_b=[]
 #ciccio=[]
 #ciccia=[]
 #abs(gal.l[i])<40*u.deg

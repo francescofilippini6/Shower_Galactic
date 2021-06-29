@@ -104,7 +104,7 @@ if __name__ == "__main__":
     df['predicted_dropout']=predicted_labels
     #df['label']=np.ones(len(df['TriggerT3']))
     print("storing result")
-    df.to_hdf('NewPrediction_NOTG_BDT_more_0.12.h5', key='df', mode='w')
+    df.to_hdf('DataPrediction.h5', key='df', mode='w')
     y_pr=[]
     for a in predicted_labels:
         if a > 0.5:

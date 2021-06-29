@@ -52,7 +52,7 @@ if __name__ == "__main__":
     print(df)
     bdt_bin=np.linspace(-0.05,0.55,13,endpoint=True)   # step 0.05
     ann_bin=np.linspace(0.05,0.9,18, endpoint=True)
-    energy_bin=np.linspace(0.76,8.08,46,endpoint=True) # max value 9.06
+    energy_bin=np.linspace(0.76,9.06,51,endpoint=True) # max value 9.06
     table = pd.DataFrame(index = ['-0.05','0.0','0.05','0.10','0.15','0.20','0.25','0.3' ,'0.35','0.4','0.45','0.5','0.55'],columns = ['0.05','0.10','0.15','0.20','0.25','0.3' ,'0.35','0.4','0.45','0.5','0.55','0.6' ,'0.65','0.7', '0.75','0.8' ,'0.85','0.9'])
     for row,bdt_cut in enumerate(bdt_bin):
         for column,ann_cut in enumerate(ann_bin):
@@ -70,7 +70,10 @@ if __name__ == "__main__":
             cosmic=ae[101:150]
             MRF=[]
             for a in range(len(on)):
-                MRF.append(mrf_3dimension(off[a],cosmic[a]))
+                if a > 45:
+                    continue
+                else:
+                    MRF.append(mrf_3dimension(off[a],cosmic[a]))
             table.iloc[row,column]=MRF
             print(MRF)
     print("saving file")

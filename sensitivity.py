@@ -7,9 +7,10 @@ import numpy as np
     
 if __name__ == "__main__":
     #df=pd.read_csv('ON_OFF_histo.csv')
-    df=pd.read_csv('Calc_MRF_3D_step_smaller.csv')
+    df=pd.read_csv('MRF_cut_energy.csv')
+    print(df)
     df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
-    #print(df.head(10))
+    print(df)
     #print(df['0.5'][1])
     bdt_bin=np.linspace(-0.05,0.55,13,endpoint=True)   # step 0.05
     ann_bin=np.linspace(0.05,0.9,18, endpoint=True)
@@ -40,6 +41,6 @@ if __name__ == "__main__":
             aeb=[]
             for ener,ab in enumerate(eeb):
                 if float(ab) == final:
-                    print('ANN, BDT, ENE: ',ann_cut,bdt_cut,energy_bin[ene])
+                    print('ANN, BDT, ENE: ',ann_cut,bdt_cut,energy_bin[ener])
                 else:
                     continue

@@ -22,6 +22,7 @@ from collections import Counter
 from scipy import special
 from scipy.stats import poisson
 import scipy.stats as st
+import scipy.special as sc
 
 def reader(filename):
     df = pd.read_hdf(filename)
@@ -206,24 +207,25 @@ def ONandOFF(df):
         pvalue=1-tailpos
         discrepancy.append(st.norm.ppf(1-pvalue))
 
-    discrepancy1=[]
-    for bind in range(len(onhisto)):
-        LieMa=np.sqrt(2)*np.sqrt(onhisto[bind]*np.log(2*onhisto[bind]/(onhisto[bind]+offhisto[bind]))+offhisto[bind]*np.log(2*offhisto[bind]/(onhisto[bind]+offhisto[bind])))
-        discrepancy1.append(LieMa)
-
+    #discrepancy1=[]
+   # for bind in range(len(onhisto)):
+   #     LieMa=np.sqrt(2)*np.sqrt(onhisto[bind]*np.log(2*onhisto[bind]/(onhisto[bind]+offhisto[bind]))+offhisto[bind]*np.log(2*offhisto[bind]/(onhisto[bind]+offhisto[bind])))
+   #     discrepancy1.append(LieMa)
+        
     #discrepancy2=[]
     #for bine in range(len(onhisto)):
-    #    poissonsigma=np.sqrt(2*(onhisto[bine]*np.log(onhisto[bine]/offhisto[bine])-2*onhisto[bine]*(onhisto[bine]-offhisto[bine])))
-    #    discrepancy2.append(poissonsigma)
-    #
-    print(discrepancy,len(discrepancy))    
+    #    onoffarticle=sc.betainc(0.5,onhisto[bine],1+offhisto[bine])/sc.beta(onhisto[bine],1+offhisto[bine])
+    #    discrepancy2.append(onoffarticle)
+    #print(discrepancy2)
+    
+    #print(discrepancy,len(discrepancy))    
     fig = plt.figure()
     gs = fig.add_gridspec(nrows=4, ncols=2,  hspace=0)#gs=GridSpec(4,2)
     ax=fig.add_subplot(gs[:-1,0])
     ax.plot(center,offhisto,'+r',label='offzone')
     ax.plot(center,onhisto,'+b',label='onzone')
     ax.plot(center,cosmic,'+g',label='onzone cosmic')
-    ax.axvline(x=3.748,color='k',linestyle='--')
+    ax.axvline(x=3.582,color='k',linestyle='--')
     ax.set_xlabel('log10(E/GeV)')
     ax.set_ylabel(r'$\frac{dN}{dE}$')
     ax.set_yscale('log')
@@ -247,10 +249,10 @@ def ONandOFF(df):
     ax2.axhline(y=2, color='g', linestyle='-',label=r'2 $\sigma$')
     ax2.axhline(y=3, color='r', linestyle='-',label=r'3 $\sigma$')
     ax2.axhline(y=5, color='b', linestyle='-',label=r'5 $\sigma$')
+    ax2.plot(center,discrepancy,'+k',label=r'poisson fluctuation ($\mu_s$=0)')
+    #ax2.plot(center,discrepancy1,'xb',label='Li and Ma')
+    #ax2.plot(center,discrepancy2,'.r',label='Cousins Linnemann Tucker')
     ax2.legend()
-    ax2.plot(center,discrepancy,'+k')
-    ax2.plot(center,discrepancy1,'xb')
-    #ax2.plot(center,discrepancy2,'.r')
     
     ax2.set_ylabel(r'$\sigma$')
     ax2.set_xlabel('log10(E/GeV)')
@@ -284,7 +286,7 @@ if __name__ == "__main__":
     listofdataframe.append(dfm)
     dff = pd.concat(listofdataframe,sort=False)
     dfbdt=dff[dff['BDT__cuts_1e2']>0.10]
-    dfnn=dfbdt[dfbdt['predicted_dropout']<0.9]
+    dfnn=dfbdt[dfbdt['predicted_dropout']<0.85]
     print(dff.keys())
     OFF,ON,cosmic=ONandOFF(dfnn)
     
