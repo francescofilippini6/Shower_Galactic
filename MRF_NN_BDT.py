@@ -60,6 +60,7 @@ if __name__ == "__main__":
     H, xedges, yedges = np.histogram2d(x,y, bins=(xedges, yedges))
     print(H[0])
     counter=0
+    #aaa=[]
     for i in range(13):
         df1=df[counter:counter+3]
         print(df1)
@@ -72,8 +73,9 @@ if __name__ == "__main__":
         for a in range(len(on)):
             MRF.append(mrf_2dimension(off[a],on[a]))
         #print(on)
-        minima.append(np.argmin(MRF))
+        minima.append(min(MRF))
         H[i] = MRF
+        
 
     print(minima)
     #print(H)

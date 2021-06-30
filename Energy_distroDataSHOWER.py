@@ -46,14 +46,15 @@ def converter(df):
     antares_latitude, antares_longitude = utm.to_latlon(antares_easting, antares_northing, antares_utm_zone_number, antares_utm_zone_letter)
     print(antares_latitude,antares_longitude)
     locationAntares = locationAntares= EarthLocation(lat=antares_latitude*u.deg , lon= antares_longitude*u.deg, height= antares_height*u.m)
-    ra=df['ra']
-    dec=df['dec']
-    print(ra)
-    print(dec)
-    Timemjd=np.array(df['mjd'])
+    azor=np.array(df['TantraAzimuth'])
+    
+    altor=np.array(np.pi/2-df['TantraZenith'])
+
+    Timemjd=np.array(df['DateMJD'])
     obstime = Time(Timemjd,format='mjd')
     #-------- frame to be used icrs or FK5 (= j2000)
-    c = SkyCoord(ra=ra, dec=dec,frame='icrs',unit=u.rad)
+    frame_original = AltAz(obstime=obstime,location=locationAntares)
+    c = SkyCoord(alt=altor, az=azor,frame=frame_original,unit=u.rad)
     print("Now local to galactic")
     gal=c.galactic
     df['gal_l']=gal.l.deg
@@ -70,35 +71,27 @@ def checker_off_zone(df):
     antares_latitude, antares_longitude = utm.to_latlon(antares_easting, antares_northing, antares_utm_zone_number, antares_utm_zone_letter)
     print(antares_latitude,antares_longitude)
     locationAntares = locationAntares= EarthLocation(lat=antares_latitude*u.deg , lon=antares_longitude*u.deg, height= antares_height*u.m)
-    ra=df['ra']
-    dec=df['dec']
-    Timemjd=np.array(df['mjd'])
-    #obstime = Time(Timemjd,format='mjd')
-    #-------- frame to be used icrs or FK5 (= j2000)
-    ca = SkyCoord(ra=ra, dec=dec,frame='icrs',unit=u.rad)
-    timecommon=Time(Timemjd,format='mjd')
-    frame_common = AltAz(obstime=timecommon,location=locationAntares)
-    shifted=ca.transform_to(frame_common)
-    print(shifted)
+    #--------------------------------------------------
+    azoff=np.array(df['TantraAzimuth'])
+    altoff=np.array(np.pi/2-df['TantraZenith'])
+    Timemjd=np.array(df['DateMJD'])
+    #timecommon=Time(Timemjd,format='mjd')
+    #frame_common = AltAz(obstime=timecommon,location=locationAntares)
+    #ca = SkyCoord(az=azoff, alt=altoff,frame=frame_common,unit=u.rad)
     
-    for i in range(noff+1):   #for i in range(10):
+    for i in range(noff+1):  
         shifttime=4.5/24. + i*(1 - 4.5/24 - 7.2/24 )/noff 
         shift=Timemjd+shifttime
         oobstime = Time(shift,format='mjd')
         frame_hor = AltAz(obstime=oobstime,location=locationAntares)
-        cccc=SkyCoord(alt=shifted.alt, az=shifted.az,frame=frame_hor,unit=u.rad)
-        #plotter(cccc.az,cccc.alt,frame_hor)
-        print("second",cccc)
+        cccc=SkyCoord(alt=altoff, az=azoff,frame=frame_hor,unit=u.rad)
+        #print("second",cccc)
         gallo=cccc.galactic
-        #plotter(gal.l,gal.b,'galactic')
-        print("final gal",gallo)
         off=[]
         off=np.zeros(len(gallo.l))
         for coor in range(len(gallo.l)):
             if np.absolute(float(gallo[coor].b.deg))<zoneAmplitudeb:
                 if float(gallo[coor].l.deg)<zoneAmplitudel or float(gallo[coor].l.deg)>(360-zoneAmplitudel):
-                    #print(gallo[coor].b.deg)
-                    #print(float(gallo[coor].b.deg))
                     off[coor]=1
                 else:
                     continue
@@ -107,7 +100,6 @@ def checker_off_zone(df):
         df['off'+str(i)]=off
         df['gal_b'+str(i)]=gallo.b.deg
         df['gal_l'+str(i)]=gallo.l.deg
-        
     return df
 
 def energy_distro(df):
@@ -132,18 +124,14 @@ def plot_ONZONE(df,bins):
 
     df=zonesSelection(df,'gal_b','gal_l')
     print("ON histo")
-    hist0, _ = np.histogram(df['log10rho'], bins=bins)
+    hist0, _ = np.histogram(df['TantraEnergy'], bins=bins)
    
     #--------------------------------------------------
     #  also MC zenith and azimuth must be in the ON region
     #--------------------------------------------------
-   
-    #hist1, _ = np.histogram(df['TantraEnergy'], bins=bins,weights=np.array(df['new_w3']))
-    #print("Cosmic signal events:", sum(hist1))
-    print("ON events atm:", sum(hist0))
-    histsumON=hist0
-    #print("ON events tot:", sum(histsumON))
-    return (histsumON)
+    
+    print("ON events:", sum(hist0))
+    return (hist0)
 
 def plot_OFFZONE(df):
     print("OFF_Zones_selection")
@@ -162,21 +150,21 @@ def plot_OFFZONE(df):
     print("OFF histo")
 
     
-    hist0, bins = np.histogram(df0['log10rho'], bins=50)
-    hist1, _ = np.histogram(df1['log10rho'], bins=bins)
-    hist2, _ = np.histogram(df2['log10rho'], bins=bins)
-    hist3, _ = np.histogram(df3['log10rho'], bins=bins)
-    hist4, _ = np.histogram(df4['log10rho'], bins=bins)
-    hist5, _ = np.histogram(df5['log10rho'], bins=bins)
-    hist6, _ = np.histogram(df6['log10rho'], bins=bins)
-    hist7, _ = np.histogram(df7['log10rho'], bins=bins)
-    hist8, _ = np.histogram(df8['log10rho'], bins=bins)
-    #hist9, _ = np.histogram(df9['log10rho'], bins=bins)
-    #hist10, _ = np.histogram(df10['log10rho'], bins=bins)
-    #hist11, _ = np.histogram(df11['log10rho'], bins=bins)
+    hist0, bins = np.histogram(df0['TantraEnergy'], bins=50)
+    hist1, _ = np.histogram(df1['TantraEnergy'], bins=bins)
+    hist2, _ = np.histogram(df2['TantraEnergy'], bins=bins)
+    hist3, _ = np.histogram(df3['TantraEnergy'], bins=bins)
+    hist4, _ = np.histogram(df4['TantraEnergy'], bins=bins)
+    hist5, _ = np.histogram(df5['TantraEnergy'], bins=bins)
+    hist6, _ = np.histogram(df6['TantraEnergy'], bins=bins)
+    hist7, _ = np.histogram(df7['TantraEnergy'], bins=bins)
+    hist8, _ = np.histogram(df8['TantraEnergy'], bins=bins)
+    #hist9, _ = np.histogram(df9[''TantraEnergy''], bins=bins)
+    #hist10, _ = np.histogram(df10[''TantraEnergy''], bins=bins)
+    #hist11, _ = np.histogram(df11[''TantraEnergy''], bins=bins)
 
-    histsum=(hist0+hist1+hist2+hist3+hist4+hist5+hist6+hist7+hist8)/noff#+hist9+hist10+hist11)/noff
-    #print("mean OFF events:",sum(histsum))
+    histsum=(hist0+hist1+hist2+hist3+hist4+hist5+hist6+hist7+hist8)/noff
+    print("mean OFF events:",sum(histsum))
     #print(bins)
     return (histsum,bins)
 
@@ -187,19 +175,18 @@ def ONandOFF(df):
     center = (binning[:-1] + binning[1:]) / 2
     cumulativeon=[]
     cumulativeoff=[]
-    cumulativecosmic=[]
+    
     for i in range(len(binning)-1):
         cumulativeon.append(sum(onhisto[i:]))
         cumulativeoff.append(sum(offhisto[i:]))
-        #cumulativecosmic.append(sum(cosmic[i:]))
-
+    
         
     #saver.to_csv('Energy_Mrf.csv')
     #------------------------------------------------------
     # relative discrepancy
     #------------------------------------------------------
     #discrepancy=(np.absolute(onhisto-offhisto)/offhisto)*100
-
+    
     #------------------------------------------------------
     # ratio discrepancy
     #------------------------------------------------------
@@ -207,13 +194,13 @@ def ONandOFF(df):
     #------------------------------------------------------
     # sigma discrepancy
     #------------------------------------------------------
-
+    
     discrepancy=[]
     for binc in range(len(onhisto)):
         tailpos=poisson.cdf(onhisto[binc],offhisto[binc]) #cdf=cumulative distribution function
         pvalue=1-tailpos
         discrepancy.append(st.norm.ppf(1-pvalue))
-    
+
     # discrepancy1=[]
     # for bind in range(len(onhisto)):
     #     LieMa=np.sqrt(2)*np.sqrt(onhisto[bind]*np.log(2*onhisto[bind]/(onhisto[bind]+offhisto[bind]))+offhisto[bind]*np.log(2*offhisto[bind]/(onhisto[bind]+offhisto[bind])))
@@ -224,34 +211,28 @@ def ONandOFF(df):
     #    onoffarticle=sc.betainc(0.5,onhisto[bine],1+offhisto[bine])/sc.beta(onhisto[bine],1+offhisto[bine])
     #    discrepancy2.append(onoffarticle)
     #print(discrepancy2)
-
     #print(discrepancy,len(discrepancy))
+
     fig = plt.figure()
     fig.suptitle('Energy distro On/OFF, l:'+str(zoneAmplitudel)+',b:'+str(zoneAmplitudeb), fontsize=16)
     gs = fig.add_gridspec(nrows=4, ncols=2,  hspace=0)#gs=GridSpec(4,2)
     ax=fig.add_subplot(gs[:-1,0])
     ax.plot(center,offhisto,'+r',label='offzone')
     ax.plot(center,onhisto,'+b',label='onzone')
-    #ax.plot(center,cosmic,'+g',label='onzone cosmic')
-    #ax.axvline(x=3.582,color='k',linestyle='--')
-    ax.set_xlabel(r'log$_{10}(\rho/GeV)$')
-    #ax.set_ylabel(r'$\frac{dN}{dE}$')
+    ax.set_xlabel(r'log$_{10}(TantraE/GeV)$')
     ax.set_yscale('log')
+    ax.set_xscale('log')
     ax.legend()
     ax1=fig.add_subplot(122)
     ax1=fig.add_subplot(gs[:,1])
     ax1.plot(center,cumulativeoff,'--r',label='offzone')
     ax1.plot(center,cumulativeon,'--b',label='onzone')
-    #ax1.plot(center,cumulativecosmic,'--g',label='onzone cosmic')
-    ax1.set_xlabel(r'log$_{10}(\rho/GeV)$')
+    ax1.set_xlabel(r'log$_{10}(TantraEnergy/GeV)$')
     ax1.set_title('Cumulative')
     ax1.set_ylabel(r'$\frac{dN}{dE}$')
     ax1.set_yscale('log')
     ax1.legend()
     ax2=fig.add_subplot(gs[-1:,0])
-    #ax2.fill_between(x, 0, 2,color='green', alpha=0.5)
-    #ax2.fill_between(x, 2, 3,color='yellow', alpha=0.5)
-    #ax2.fill_between(x, 3, 10,color='red', alpha=0.5)
     ax2.axhline(y=2, color='g', linestyle='-',label=r'2 $\sigma$')
     ax2.axhline(y=3, color='r', linestyle='-',label=r'3 $\sigma$')
     ax2.axhline(y=5, color='b', linestyle='-',label=r'5 $\sigma$')
@@ -260,7 +241,8 @@ def ONandOFF(df):
     #ax2.plot(center,discrepancy2,'.r',label='Cousins Linnemann Tucker')
     ax2.legend(fontsize=7)
     ax2.set_ylabel(r'$\sigma$')
-    ax2.set_xlabel(r'log$_{10}(\rho/GeV)$')
+    ax2.set_xlabel(r'log$_{10}(TantraEnergy/GeV)$')
+    ax2.set_xscale('log')
     ax2.set_yscale('log')
     plt.show()
     return (offhisto,onhisto)
@@ -311,6 +293,7 @@ def cat2hpx(lon, lat, nside, radec=True):
 
     return hpx_map
 
+
 def plotter(array_l,array_b,coordinate_frame):
     galactic_ridge=SkyCoord(l=array_l,b=array_b,frame=coordinate_frame, unit=u.deg)
     NSIDE = 64 # this sets the side resolution of each one of the 12 basic-macro pixels
@@ -334,42 +317,38 @@ def plotter(array_l,array_b,coordinate_frame):
     return 0
 
 if __name__ == "__main__":
-    dfaa = pd.read_csv("DataTrack.dat", sep="\s+", usecols=['ra', 'dec' ,'cosz' ,'log10rho' ,'beta' ,'run' ,'mjd' ,'selector'])
-    dfaa=dfaa[dfaa['selector']==0]
+    dfaa=pd.read_hdf('DataShowerPrediction.h5')
+    dfaa=dfaa[dfaa['BDT__cuts_1e2']>0.10]
+    dfaa=dfaa[dfaa['predicted_dropout']<0.30]
+    print('ZENITH',dfaa['TantraZenith'])
+    print(min(dfaa['TantraZenith']),max(dfaa['TantraZenith']))
+    
     dfconverted=converter(dfaa)
-    # ----------------------------
-    #to look at ON region only
-    #----------------------------
-    #dfcc=zonesSelection(dfconverted,'gal_b','gal_l')
-    #energy_distro(dfcc)
-    
     dfbb=checker_off_zone(dfaa)
-    dfbb.to_csv('PS_2020.csv',mode='w')
+    dfbb.to_csv('Shower_2020.csv',mode='w')
     
-    
-    dfdd = pd.read_csv('PS_2020.csv')
+    dfdd = pd.read_csv('Shower_2020.csv')
     print(dfdd.keys())
     lista=[]
     
-    for a in range(len(dfdd['ra'])):
+    for a in range(len(dfdd['TantraZenith'])):
         aaaaa=dfdd.iloc[a]
-        aaa=list(aaaaa[['off0','off1','off2','off3','off4','off5','off6','off7','off8']])#,'off9','off10','off11']])
+        aaa=list(aaaaa[['off0','off1','off2','off3','off4','off5','off6','off7','off8']])
         counter=Counter(aaa)
         if counter[1]>1:
             lista.append(a)
     print('Len lista',len(lista))
     print('LISTA',lista)
-    modDfObj = dfdd.drop(lista)
-    print(modDfObj)
+    #modDfObj = dfdd.drop(lista)
+    #print(modDfObj)
     ONandOFF(dfdd)    
-    off=['off0','off1','off2','off3','off4','off5','off6','off7','off8']#,'off9','off10','off11']
+    off=['off0','off1','off2','off3','off4','off5','off6','off7','off8']
     lv=[]
     bv=[]
     for b in off:
-        for a in range(len(dfdd['ra'])):
+        for a in range(len(dfdd['TantraZenith'])):
             if dfdd[b].iloc[a] >0.9:
                 lv.append(dfdd['gal_l'].iloc[a])
                 bv.append(dfdd['gal_b'].iloc[a])
-    #print(lv,bv)
     print(len(lv))
     plotter(lv,bv,'galactic')

@@ -102,12 +102,12 @@ if __name__ == "__main__":
     #predicted_label_distribution(df,predicted_labels)
 
     df['predicted_dropout']=predicted_labels
-    #df['label']=np.ones(len(df['TriggerT3']))
+    df['label']=np.ones(len(df['TriggerT3']))
     print("storing result")
-    df.to_hdf('DataPrediction.h5', key='df', mode='w')
+    df.to_hdf('DataShowerPrediction.h5', key='df', mode='w')
     y_pr=[]
     for a in predicted_labels:
-        if a > 0.5:
+        if a > 0.3:
             y_pr.append(1)
         else:
             y_pr.append(0)
@@ -119,4 +119,5 @@ if __name__ == "__main__":
     ax.set_ylabel('true')
     ax.set_xlabel('predicted')
     plt.show()
+    
     

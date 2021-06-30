@@ -285,11 +285,11 @@ if __name__ == "__main__":
     listofdataframe.append(df)
     listofdataframe.append(dfm)
     dff = pd.concat(listofdataframe,sort=False)
-    dfbdt=dff[dff['BDT__cuts_1e2']>0.10]
-    dfnn=dfbdt[dfbdt['predicted_dropout']<0.85]
+    dfbdt=dff[dff['BDT__cuts_1e2']>0.15]
+    dfnn=dfbdt[dfbdt['predicted_dropout']<0.3]
     print(dff.keys())
     OFF,ON,cosmic=ONandOFF(dfnn)
     
 
 
-
+    

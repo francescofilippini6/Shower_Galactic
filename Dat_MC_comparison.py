@@ -28,12 +28,12 @@ def reader(filename):
 def plotter(dfdata,dfmc,key):
     print(key)
     #bins=0
-    datahist, bins = np.histogram(dfdata[key],bins=40,weights=np.array([10]*len(dfdata[key])))
-    mchist, _ = np.histogram(dfmc[key],bins=bins,weights=np.array(dfmc['WeightAtmo']))
+    datahist, bins = np.histogram(dfdata[key],bins=40)
+    mchist, _ = np.histogram(dfmc[key],bins=bins,weights=np.array(dfmc['WeightAtmo'])+np.array(dfmc['']))
     print(bins)
     print(mchist)
     #center = (bins[:-1] + bins[1:]) / 2
-    discrepancy=(np.absolute(mchist-datahist)/mchist)*100
+    discrepancy=(datahist/mchist)
     #discrepancy=[]
     #for u in mchist:
     #    if u==0:
@@ -56,30 +56,35 @@ def plotter(dfdata,dfmc,key):
     print(center)
     ax2=fig.add_subplot(gs[-1:,0])
     ax2.plot(center,discrepancy,'+k')
-    ax2.set_ylabel('|mc-data|/mc (%)')
+    ax2.set_ylabel('data/mc')
     plt.savefig('/Users/francescofilippini/Desktop/Shower_event_analysis/MC_dat_comparison/'+key+'.png')
     return fig
 
 if __name__ == "__main__":
-    
     #------------------------------------------------
     MC=sys.argv[1]
     dfMonC=reader(MC)
-    
+    #dfMonC=dfMonC[dfMonC['BDT__cuts_1e2']>0.10]
+    print('1')
     data=sys.argv[2]
     dfdata=reader(data)
-
+    print('2')
     muon=sys.argv[3]
     dfmuon=reader(muon)
+    dfmuon=dfmuon[dfmuon['BDT__cuts_1e2']>0.10]
+    print('2.5')
     listdf=[]
     listdf.append(dfMonC)
     listdf.append(dfmuon)
     dfmc = pd.concat(listdf,sort=False)
+    print('2.5')
+    #dfmc=dfmc[dfmc['BDT__cuts_1e2']>0.10]
     dfdata=dfdata[dfdata['BDT__cuts_1e2']>0.10]
-    dfmc=dfmc[dfmc['BDT__cuts_1e2']>0.10]
-    
+    print('3')
     listofkey=['TantraLines', 'TantraHits', 'Mestimator', 'TantraZenith','TantraAzimuth', 'TantraAngularEstimator', 'TantraX', 'TantraY','TantraZ', 'Lambda','Beta', 'TrackLength','TantraEnergy','TantraRho','TriggerCounter','NOnTime','AAZenith', 'AAAzimuth','GridQuality','Trigger3N', 'TriggerT3','NEW_LIKELIHOOD_3D_ATMO','IntegralCharge','MeanCharge', 'StdCharge']
     key1=['predicted_dropout']
     #key1=['predicted_label']
     for keyy in key1:
         plotter(dfdata,dfmc,keyy)
+        
+        
