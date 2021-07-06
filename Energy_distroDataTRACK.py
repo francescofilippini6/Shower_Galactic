@@ -25,9 +25,9 @@ from scipy.stats import poisson
 import scipy.stats as st
 from collections import Counter
 
-zoneAmplitudeb=3
-zoneAmplitudel=40
-noff=9
+zoneAmplitudeb=2
+zoneAmplitudel=30
+noff=12
 
 def zonesSelection(dfa,lat,lon):
     print("cut on b latitude")
@@ -48,12 +48,12 @@ def converter(df):
     locationAntares = locationAntares= EarthLocation(lat=antares_latitude*u.deg , lon= antares_longitude*u.deg, height= antares_height*u.m)
     ra=df['ra']
     dec=df['dec']
-    print(ra)
-    print(dec)
+    #print(ra)
+    #print(dec)
     Timemjd=np.array(df['mjd'])
     obstime = Time(Timemjd,format='mjd')
     #-------- frame to be used icrs or FK5 (= j2000)
-    c = SkyCoord(ra=ra, dec=dec,frame='icrs',unit=u.rad)
+    c = SkyCoord(ra=ra, dec=dec,frame='icrs',unit=u.deg)
     print("Now local to galactic")
     gal=c.galactic
     df['gal_l']=gal.l.deg
@@ -75,23 +75,23 @@ def checker_off_zone(df):
     Timemjd=np.array(df['mjd'])
     #obstime = Time(Timemjd,format='mjd')
     #-------- frame to be used icrs or FK5 (= j2000)
-    ca = SkyCoord(ra=ra, dec=dec,frame='icrs',unit=u.rad)
+    ca = SkyCoord(ra=ra, dec=dec,frame='icrs',unit=u.deg)
     timecommon=Time(Timemjd,format='mjd')
     frame_common = AltAz(obstime=timecommon,location=locationAntares)
     shifted=ca.transform_to(frame_common)
-    print(shifted)
+    #print(shifted)
     
     for i in range(noff+1):   #for i in range(10):
         shifttime=4.5/24. + i*(1 - 4.5/24 - 7.2/24 )/noff 
         shift=Timemjd+shifttime
         oobstime = Time(shift,format='mjd')
         frame_hor = AltAz(obstime=oobstime,location=locationAntares)
-        cccc=SkyCoord(alt=shifted.alt, az=shifted.az,frame=frame_hor,unit=u.rad)
+        cccc=SkyCoord(alt=shifted.alt, az=shifted.az,frame=frame_hor,unit=u.deg)
         #plotter(cccc.az,cccc.alt,frame_hor)
-        print("second",cccc)
+        #print("second",cccc)
         gallo=cccc.galactic
         #plotter(gal.l,gal.b,'galactic')
-        print("final gal",gallo)
+        #print("final gal",gallo)
         off=[]
         off=np.zeros(len(gallo.l))
         for coor in range(len(gallo.l)):
@@ -156,13 +156,13 @@ def plot_OFFZONE(df):
     df6=zonesSelection(df,'gal_b6','gal_l6')
     df7=zonesSelection(df,'gal_b7','gal_l7')
     df8=zonesSelection(df,'gal_b8','gal_l8')
-    #df9=zonesSelection(df,'gal_b9','gal_l9')
-    #df10=zonesSelection(df,'gal_b10','gal_l10')
-    #df11=zonesSelection(df,'gal_b11','gal_l11')
+    df9=zonesSelection(df,'gal_b9','gal_l9')
+    df10=zonesSelection(df,'gal_b10','gal_l10')
+    df11=zonesSelection(df,'gal_b11','gal_l11')
     print("OFF histo")
 
     
-    hist0, bins = np.histogram(df0['log10rho'], bins=50)
+    hist0, bins = np.histogram(df0['log10rho'], bins=20)
     hist1, _ = np.histogram(df1['log10rho'], bins=bins)
     hist2, _ = np.histogram(df2['log10rho'], bins=bins)
     hist3, _ = np.histogram(df3['log10rho'], bins=bins)
@@ -171,11 +171,11 @@ def plot_OFFZONE(df):
     hist6, _ = np.histogram(df6['log10rho'], bins=bins)
     hist7, _ = np.histogram(df7['log10rho'], bins=bins)
     hist8, _ = np.histogram(df8['log10rho'], bins=bins)
-    #hist9, _ = np.histogram(df9['log10rho'], bins=bins)
-    #hist10, _ = np.histogram(df10['log10rho'], bins=bins)
-    #hist11, _ = np.histogram(df11['log10rho'], bins=bins)
+    hist9, _ = np.histogram(df9['log10rho'], bins=bins)
+    hist10, _ = np.histogram(df10['log10rho'], bins=bins)
+    hist11, _ = np.histogram(df11['log10rho'], bins=bins)
 
-    histsum=(hist0+hist1+hist2+hist3+hist4+hist5+hist6+hist7+hist8)/noff#+hist9+hist10+hist11)/noff
+    histsum=(hist0+hist1+hist2+hist3+hist4+hist5+hist6+hist7+hist8+hist9+hist10+hist11)/noff
     #print("mean OFF events:",sum(histsum))
     #print(bins)
     return (histsum,bins)
@@ -238,7 +238,8 @@ def ONandOFF(df):
     #ax.set_ylabel(r'$\frac{dN}{dE}$')
     ax.set_yscale('log')
     ax.legend()
-    ax1=fig.add_subplot(122)
+
+    #ax1=fig.add_subplot(122)
     ax1=fig.add_subplot(gs[:,1])
     ax1.plot(center,cumulativeoff,'--r',label='offzone')
     ax1.plot(center,cumulativeon,'--b',label='onzone')
@@ -334,10 +335,19 @@ def plotter(array_l,array_b,coordinate_frame):
     return 0
 
 if __name__ == "__main__":
-    dfaa = pd.read_csv("DataTrack.dat", sep="\s+", usecols=['ra', 'dec' ,'cosz' ,'log10rho' ,'beta' ,'run' ,'mjd' ,'selector'])
+    #Lambdacut=-5.
+    #betacut=0.5
+    
+    dfaa = pd.read_csv("DataTracksLAMBDA.dat", sep="\s+", usecols=['dec','ra','nhits','beta','lambda','lambda1' ,'costheta','azimuth','logdEdX','Lmu','run','eventID','selector'])
+    dfrr = pd.read_csv("DataTrack.dat", sep="\s+", usecols=['ra','dec','cosz','log10rho','beta','run','mjd','selector'])
+    dfaa['mjd']=dfrr['mjd']
+    dfaa['log10rho']=dfrr['log10rho']
     dfaa=dfaa[dfaa['selector']==0]
+    dfaa=dfaa[dfaa['lambda1']>-5.0]
+    dfaa=dfaa[dfaa['beta']<0.5]
+    
     dfconverted=converter(dfaa)
-    # ----------------------------
+    #----------------------------
     #to look at ON region only
     #----------------------------
     #dfcc=zonesSelection(dfconverted,'gal_b','gal_l')
@@ -353,7 +363,7 @@ if __name__ == "__main__":
     
     for a in range(len(dfdd['ra'])):
         aaaaa=dfdd.iloc[a]
-        aaa=list(aaaaa[['off0','off1','off2','off3','off4','off5','off6','off7','off8']])#,'off9','off10','off11']])
+        aaa=list(aaaaa[['off0','off1','off2','off3','off4','off5','off6','off7','off8','off9','off10','off11']])
         counter=Counter(aaa)
         if counter[1]>1:
             lista.append(a)
@@ -362,7 +372,7 @@ if __name__ == "__main__":
     modDfObj = dfdd.drop(lista)
     print(modDfObj)
     ONandOFF(dfdd)    
-    off=['off0','off1','off2','off3','off4','off5','off6','off7','off8']#,'off9','off10','off11']
+    off=['off0','off1','off2','off3','off4','off5','off6','off7','off8','off9','off10','off11']
     lv=[]
     bv=[]
     for b in off:
@@ -370,6 +380,6 @@ if __name__ == "__main__":
             if dfdd[b].iloc[a] >0.9:
                 lv.append(dfdd['gal_l'].iloc[a])
                 bv.append(dfdd['gal_b'].iloc[a])
-    #print(lv,bv)
+               
     print(len(lv))
     plotter(lv,bv,'galactic')

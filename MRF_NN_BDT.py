@@ -61,6 +61,7 @@ if __name__ == "__main__":
     print(H[0])
     counter=0
     #aaa=[]
+    table = pd.DataFrame(index = ['-0.05','0.0','0.05','0.10','0.15','0.20','0.25','0.3' ,'0.35','0.4','0.45','0.5','0.55'],columns = ['0.05','0.10','0.15','0.20','0.25','0.3' ,'0.35','0.4','0.45','0.5','0.55','0.6' ,'0.65','0.7', '0.75','0.8' ,'0.85','0.9'])
     for i in range(13):
         df1=df[counter:counter+3]
         print(df1)
@@ -68,27 +69,30 @@ if __name__ == "__main__":
         off=np.array(df1.iloc[0])
         on=np.array(df1.iloc[2])
         counter+=3
-        MRF=[]
-        minima=[]
+        MRF_array=[]
+        #minima=[]
         for a in range(len(on)):
-            MRF.append(mrf_2dimension(off[a],on[a]))
+            MRF=mrf_2dimension(off[a],on[a])
+            table.iloc[i,a]=MRF
+            MRF_array.append(MRF)
         #print(on)
-        minima.append(min(MRF))
+        #minima.append(min(MRF_array))
         H[i] = MRF
-        
+    print("saving file")
+    table.to_csv('MRF_NN_BDT.csv')
 
-    print(minima)
+    #print(minima)
     #print(H)
     myextent  =[xedges[0],xedges[-1],yedges[0],yedges[-1]]
     fig=plt.figure()
-    ax=fig.add_subplot(121)
+    ax=fig.add_subplot(111)
     AA=ax.imshow(H.T,origin='lower',extent=myextent,interpolation='nearest',aspect='auto',norm = LogNorm())
     ax.set_title('MRF')
     ax.set_ylabel('NN output')
     ax.set_xlabel('BDT cut')
     fig.colorbar(AA, ax=ax)
-    ax1=fig.add_subplot(122)
-    aaa=ax1.contourf(H.T,extent=myextent,linewidths=1,cmap='Set2',norm = LogNorm())
+    #ax1=fig.add_subplot(122)
+    #aaa=ax1.contourf(H.T,extent=myextent,linewidths=1,cmap='Set2',norm = LogNorm())
     #ax1.clabel(aaa,inline=True,fmt='%1.1f',fontsize=6)
     plt.show()
     #my_df = pd.DataFrame(H)

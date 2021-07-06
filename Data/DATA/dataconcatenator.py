@@ -25,11 +25,15 @@ def reader(filename):
 
 def cut_dataframe_bdts(df):
     print("Bdt cut")
-    bdt_cut=0.33
+    bdt_cut=0.10
     selectedDF=df[df['BDT__cuts_1e2'] > bdt_cut]
     return selectedDF
  
-
+def tantrarhoinsertion(df):
+    x=np.array(df['TantraX'])
+    y=np.array(df['TantraY'])
+    rho=np.sqrt(x**2+y**2)
+    return rho
 
 if __name__ == "__main__":
     filename=sys.argv[1].split(',')
@@ -37,11 +41,19 @@ if __name__ == "__main__":
     for a in filename:
         print('retrieving file: ',a)
         df=reader(a)
-        df1=cut_dataframe_bdts(df)
-        listofdf.append(df1)
+        #df1=cut_dataframe_bdts(df)
+        listofdf.append(df)
     print(len(listofdf))
     result = pd.concat(listofdf)
-    print(result.keys)
-    print('results',len(result['BDT__cuts_1e2']))
+    rh=tantrarhoinsertion(result)
+    print(len(result['TantraX']))
+    print(len(rh))
+    result['TantraRho']=rh
+    result['TantraEnergy']=np.log10(np.array(result['TantraEnergy']))
+    result['TantraZenith']=np.cos(np.array(result['TantraZenith']))
+    result['AAZenith']=np.cos(np.array(result['AAZenith']))
+    #print('results',len(result['BDT__cuts_1e2']))
+    print('results',result.keys)
+    #print(result.keys)
     result.to_hdf('ShowerData_BDT_greater_0.10.h5', key='df', mode='w')
     

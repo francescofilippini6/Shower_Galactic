@@ -48,7 +48,7 @@ def converter(df):
     locationAntares = locationAntares= EarthLocation(lat=antares_latitude*u.deg , lon= antares_longitude*u.deg, height= antares_height*u.m)
     azor=np.array(df['TantraAzimuth'])
     
-    altor=np.array(np.pi/2-df['TantraZenith'])
+    altor=np.array(np.pi/2-np.arccos(df['TantraZenith']))
 
     Timemjd=np.array(df['DateMJD'])
     obstime = Time(Timemjd,format='mjd')
@@ -73,7 +73,7 @@ def checker_off_zone(df):
     locationAntares = locationAntares= EarthLocation(lat=antares_latitude*u.deg , lon=antares_longitude*u.deg, height= antares_height*u.m)
     #--------------------------------------------------
     azoff=np.array(df['TantraAzimuth'])
-    altoff=np.array(np.pi/2-df['TantraZenith'])
+    altoff=np.array(np.pi/2-np.arccos(df['TantraZenith']))
     Timemjd=np.array(df['DateMJD'])
     #timecommon=Time(Timemjd,format='mjd')
     #frame_common = AltAz(obstime=timecommon,location=locationAntares)
@@ -201,10 +201,10 @@ def ONandOFF(df):
         pvalue=1-tailpos
         discrepancy.append(st.norm.ppf(1-pvalue))
 
-    # discrepancy1=[]
-    # for bind in range(len(onhisto)):
-    #     LieMa=np.sqrt(2)*np.sqrt(onhisto[bind]*np.log(2*onhisto[bind]/(onhisto[bind]+offhisto[bind]))+offhisto[bind]*np.log(2*offhisto[bind]/(onhisto[bind]+offhisto[bind])))
-    #     discrepancy1.append(LieMa)
+    discrepancy1=[]
+    for bind in range(len(onhisto)):
+        LieMa=np.sqrt(2)*np.sqrt(onhisto[bind]*np.log(2*onhisto[bind]/(onhisto[bind]+offhisto[bind]))+offhisto[bind]*np.log(2*offhisto[bind]/(onhisto[bind]+offhisto[bind])))
+        discrepancy1.append(LieMa)
     #
     #discrepancy2=[]
     #for bine in range(len(onhisto)):
@@ -223,7 +223,6 @@ def ONandOFF(df):
     ax.set_yscale('log')
     ax.set_xscale('log')
     ax.legend()
-    ax1=fig.add_subplot(122)
     ax1=fig.add_subplot(gs[:,1])
     ax1.plot(center,cumulativeoff,'--r',label='offzone')
     ax1.plot(center,cumulativeon,'--b',label='onzone')
@@ -236,8 +235,8 @@ def ONandOFF(df):
     ax2.axhline(y=2, color='g', linestyle='-',label=r'2 $\sigma$')
     ax2.axhline(y=3, color='r', linestyle='-',label=r'3 $\sigma$')
     ax2.axhline(y=5, color='b', linestyle='-',label=r'5 $\sigma$')
-    ax2.plot(center,discrepancy,'+k',label=r'poisson ($\mu_s$=0)')
-    #ax2.plot(center,discrepancy1,'xb',label='Li and Ma')
+    #ax2.plot(center,discrepancy,'+k',label=r'poisson ($\mu_s$=0)')
+    ax2.plot(center,discrepancy1,'xb',label='Li and Ma')
     #ax2.plot(center,discrepancy2,'.r',label='Cousins Linnemann Tucker')
     ax2.legend(fontsize=7)
     ax2.set_ylabel(r'$\sigma$')
@@ -318,8 +317,10 @@ def plotter(array_l,array_b,coordinate_frame):
 
 if __name__ == "__main__":
     dfaa=pd.read_hdf('DataShowerPrediction.h5')
-    dfaa=dfaa[dfaa['BDT__cuts_1e2']>0.10]
-    dfaa=dfaa[dfaa['predicted_dropout']<0.30]
+    dfaa=dfaa[dfaa['BDT__cuts_1e2']>0.1]
+    dfaa=dfaa[dfaa['predicted_dropout']<0.3]
+    #dfaa=dfaa[dfaa['TantraEnergy']>3.582]
+    
     print('ZENITH',dfaa['TantraZenith'])
     print(min(dfaa['TantraZenith']),max(dfaa['TantraZenith']))
     
@@ -337,7 +338,7 @@ if __name__ == "__main__":
         counter=Counter(aaa)
         if counter[1]>1:
             lista.append(a)
-    print('Len lista',len(lista))
+        print('Len lista',len(lista))
     print('LISTA',lista)
     #modDfObj = dfdd.drop(lista)
     #print(modDfObj)

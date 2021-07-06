@@ -29,9 +29,11 @@ def plotter(dfdata,dfmc,key):
     print(key)
     #bins=0
     datahist, bins = np.histogram(dfdata[key],bins=40)
-    mchist, _ = np.histogram(dfmc[key],bins=bins,weights=np.array(dfmc['WeightAtmo'])+np.array(dfmc['']))
-    print(bins)
-    print(mchist)
+    mchist, _ = np.histogram(dfmc[key],bins=bins,weights=np.array(dfmc['WeightAtmo']))
+    print("DATA:",sum(datahist))
+    print("MC:",sum(mchist))
+    #print(bins)
+    #print(mchist)
     #center = (bins[:-1] + bins[1:]) / 2
     discrepancy=(datahist/mchist)
     #discrepancy=[]
@@ -42,7 +44,7 @@ def plotter(dfdata,dfmc,key):
     #        discrepancy.append(np.absolute(mchist-datahist)/sqrt(mchist))
     
     fig = plt.figure()
-    gs = fig.add_gridspec(nrows=4, ncols=1,  hspace=0)#gs=GridSpec(4,2)
+    gs = fig.add_gridspec(nrows=4,ncols=1,hspace=0)#gs=GridSpec(4,2)
     ax=fig.add_subplot(gs[:-1,0])
     #ax=fig.add_subplot(111)
     ax.set_title(key)
@@ -64,27 +66,25 @@ if __name__ == "__main__":
     #------------------------------------------------
     MC=sys.argv[1]
     dfMonC=reader(MC)
-    #dfMonC=dfMonC[dfMonC['BDT__cuts_1e2']>0.10]
-    print('1')
+    dfMonC=dfMonC[dfMonC['BDT__cuts_1e2']>0.15]
     data=sys.argv[2]
     dfdata=reader(data)
-    print('2')
+    dfdata=dfdata[dfdata['BDT__cuts_1e2']>0.15]
     muon=sys.argv[3]
     dfmuon=reader(muon)
-    dfmuon=dfmuon[dfmuon['BDT__cuts_1e2']>0.10]
+    dfmuon=dfmuon[dfmuon['BDT__cuts_1e2']>0.15]
     print('2.5')
     listdf=[]
     listdf.append(dfMonC)
     listdf.append(dfmuon)
     dfmc = pd.concat(listdf,sort=False)
     print('2.5')
-    #dfmc=dfmc[dfmc['BDT__cuts_1e2']>0.10]
-    dfdata=dfdata[dfdata['BDT__cuts_1e2']>0.10]
     print('3')
     listofkey=['TantraLines', 'TantraHits', 'Mestimator', 'TantraZenith','TantraAzimuth', 'TantraAngularEstimator', 'TantraX', 'TantraY','TantraZ', 'Lambda','Beta', 'TrackLength','TantraEnergy','TantraRho','TriggerCounter','NOnTime','AAZenith', 'AAAzimuth','GridQuality','Trigger3N', 'TriggerT3','NEW_LIKELIHOOD_3D_ATMO','IntegralCharge','MeanCharge', 'StdCharge']
+    key2=['Mestimator', 'TantraZenith', 'TantraAzimuth', 'Lambda', 'Beta','TantraEnergy','BDT__cuts_1e2', 'TantraRho','predicted_dropout']
     key1=['predicted_dropout']
     #key1=['predicted_label']
-    for keyy in key1:
+    for keyy in key2:
         plotter(dfdata,dfmc,keyy)
         
         

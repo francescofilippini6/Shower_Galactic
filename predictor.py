@@ -35,14 +35,20 @@ def reader(filename):
 
 def preprocessing(df1,df2):
     print("preprocessing dataset")
+    #.---------------------------
+    #important  caveat: the classification is sensitive to the order of the column name
+    #-----------------------------
+    
     aa = df1[['TantraLines', 'TantraHits', 'Mestimator', 'TantraZenith',
               'TantraAzimuth', 'TantraAngularEstimator', 'TantraX', 'TantraY',
-              'TantraZ','Lambda','Beta', 'TrackLength','TantraEnergy','TantraRho','IntegralCharge','MeanCharge', 'StdCharge',
-              'GridQuality','AAZenith', 'AAAzimuth','Trigger3N', 'TriggerT3','NOnTime','NEW_LIKELIHOOD_3D_ATMO']]
+              'TantraZ','Lambda','Beta', 'TrackLength','TantraEnergy','TantraRho',
+              'IntegralCharge','MeanCharge', 'StdCharge','GridQuality','AAZenith', 'AAAzimuth','Trigger3N', 'TriggerT3','NOnTime','NEW_LIKELIHOOD_3D_ATMO']]
+    
     features = df2[['TantraLines', 'TantraHits', 'Mestimator', 'TantraZenith',
               'TantraAzimuth', 'TantraAngularEstimator', 'TantraX', 'TantraY',
-              'TantraZ','Lambda','Beta', 'TrackLength','TantraEnergy','TantraRho','IntegralCharge','MeanCharge', 'StdCharge',
-                'GridQuality','AAZenith', 'AAAzimuth','Trigger3N', 'TriggerT3','NOnTime','NEW_LIKELIHOOD_3D_ATMO']]
+                    'TantraZ','Lambda','Beta', 'TrackLength','TantraEnergy','TantraRho'
+                    'IntegralCharge','MeanCharge', 'StdCharge','GridQuality','AAZenith', 'AAAzimuth','Trigger3N', 'TriggerT3','NOnTime','NEW_LIKELIHOOD_3D_ATMO']]
+    
     scaler = StandardScaler().fit(aa)
     #scaler = StandardScaler().fit(features)
     features = scaler.transform(features)
@@ -102,12 +108,13 @@ if __name__ == "__main__":
     #predicted_label_distribution(df,predicted_labels)
 
     df['predicted_dropout']=predicted_labels
-    df['label']=np.ones(len(df['TriggerT3']))
+    #df['label']=np.ones(len(df['TriggerT3']))
     print("storing result")
-    df.to_hdf('DataShowerPrediction.h5', key='df', mode='w')
+    #df.to_hdf('DataShowerPrediction.h5', key='df', mode='w')
+    #df.to_hdf('DataTRIAL.h5', key='df', mode='w')
     y_pr=[]
     for a in predicted_labels:
-        if a > 0.3:
+        if a > 0.5:
             y_pr.append(1)
         else:
             y_pr.append(0)
